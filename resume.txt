@@ -1,8 +1,0 @@
-# INSTRUCTIONS: Replace this entire file with your resume as plain text.
-# Tips for best scoring results:
-#   - Include your full skills section (technologies, tools, languages)
-#   - Include job titles / seniority level clearly (e.g., "Senior Software Engineer")
-#   - Include bullet points from past roles (responsibilities + accomplishments)
-#   - No need for formatting — plain text is ideal for embedding
-
-[PASTE YOUR RESUME HERE]
