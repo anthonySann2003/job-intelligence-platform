@@ -1,155 +1,321 @@
 import json
 import os
-import math
+from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# LangSmith tracing
 from langsmith import traceable
 from langsmith.wrappers import wrap_openai
 
 load_dotenv()
 
-# Wrap the OpenAI client so all LLM calls are automatically traced
 client = wrap_openai(OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
 
-def cosine_similarity(vec1, vec2):
-    """Compute cosine similarity between two embedding vectors."""
-    dot = sum(a * b for a, b in zip(vec1, vec2))
-    norm1 = math.sqrt(sum(a * a for a in vec1))
-    norm2 = math.sqrt(sum(b * b for b in vec2))
-    if norm1 == 0 or norm2 == 0:
-        return 0.0
-    return dot / (norm1 * norm2)
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _llm(prompt: str) -> dict:
+    """
+    Single shared LLM call used by all workers.
+    Retries once on JSON parse failure, returns empty dict on second failure.
+    All calls flow through the LangSmith-wrapped client so every worker's
+    token usage and latency appears as a child span automatically.
+    """
+    for attempt in range(2):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1000,
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
+        except (json.JSONDecodeError, Exception) as e:
+            if attempt == 1:
+                print(f"[scorer] LLM call failed after retry: {e}")
+                return {}
+
+
+def _compute_yoe(experience: list[dict]) -> float:
+    """
+    Sum durations across all experience entries.
+    Handles ISO date strings (YYYY-MM or YYYY-MM-DD).
+    Falls back to 0 for unparseable dates.
+    """
+    total_months = 0
+    for exp in experience:
+        try:
+            start_str = exp.get("start_date", "")
+            end_str   = exp.get("end_date", "") or datetime.now().strftime("%Y-%m")
+
+            # Normalise to YYYY-MM-DD so strptime is consistent
+            start = datetime.strptime(start_str[:7], "%Y-%m")
+            end   = datetime.strptime(end_str[:7],   "%Y-%m")
+
+            months = (end.year - start.year) * 12 + (end.month - start.month)
+            total_months += max(0, months)
+        except Exception:
+            continue
+
+    return round(total_months / 12, 1)
+
+
+# ── Worker A — Skill Extractor ─────────────────────────────────────────────────
+
+@traceable(name="worker_a_extract_skills", run_type="llm")
+def extract_skills(job: dict) -> dict:
+    """
+    Worker A: reads the raw job description and pulls out hard, measurable
+    requirements. This runs first because Workers B and C both depend on its
+    output. If it fails, downstream workers fall back to empty lists/nulls
+    so the pipeline still completes rather than crashing.
+    """
+    prompt = f"""
+You are an expert at parsing job descriptions for technical Computer Science and Engineering roles. Extract ONLY hard, measurable skills, requirements, tools, or platforms.
+
+Return valid JSON with exactly these fields:
+- required_skills: list of technical skills/tools that are mandatory for position
+- preferred_skills: list of skills that are "nice to have" or "preferred"
+- required_years: integer (number of years of experience required for the ROLE, NOT the years required for a skill), return null if not mentioned
+- required_degree: string (e.g. "bachelor's in CS"), or null if not mentioned
+- required_certifications: list (empty if none)
+
+Job Title: {job.get("title", "")}
+Company: {job.get("company", "")}
+Job Description:
+{job.get("description", "")}
+"""
+    result = _llm(prompt)
+    return {
+        "required_skills":        result.get("required_skills", []),
+        "preferred_skills":       result.get("preferred_skills", []),
+        "required_years":         result.get("required_years"),
+        "required_degree":        result.get("required_degree"),
+        "required_certifications": result.get("required_certifications", []),
+    }
+
+
+# ── Worker B — Keyword Score ───────────────────────────────────────────────────
+
+@traceable(name="worker_b_keyword_score", run_type="llm")
+def score_keywords(resume: dict, extracted: dict) -> dict:
+    """
+    Worker B: compares the candidate's listed skills against what Worker A
+    pulled from the job. The LLM handles synonym matching (K8s = Kubernetes)
+    which a plain string match would miss. Returns a keyword_score (0-100)
+    plus matched/missing lists that feed directly into the DB columns the
+    rest of the app already reads.
+    """
+    prompt = f"""
+You are a skill-matching expert.
+
+Resume skills: {json.dumps(resume.get("skills", []))}
+Required skills from job: {json.dumps(extracted.get("required_skills", []))}
+Preferred skills from job: {json.dumps(extracted.get("preferred_skills", []))}
+
+Scoring rules (apply exactly):
+- Start score = 100
+- For each required skill missing from resume: subtract 20  points
+- For each preferred skill missing from resume: subtract 5 points
+- For each matching skill from resume: add 10 points 
+- If required_skills list is empty, set keyword_score = 80
+- Clamp final score between 0 and 100
+- Consider synonyms (e.g. "K8s" = "kubernetes", "Postgres" = "postgresql")
+
+Return JSON:
+{{
+  "keyword_score": integer,
+  "matched_required": list,
+  "missing_required": list,
+  "matched_preferred": list,
+  "missing_preferred": list,
+  "reasoning": "brief explanation"
+}}
+"""
+    result = _llm(prompt)
+    return {
+        "keyword_score":     int(result.get("keyword_score", 0)),
+        "matched_required":  result.get("matched_required", []),
+        "missing_required":  result.get("missing_required", []),
+        "matched_preferred": result.get("matched_preferred", []),
+        "missing_preferred": result.get("missing_preferred", []),
+        "reasoning":         result.get("reasoning", ""),
+    }
+
+
+# ── Worker C — Experience & Qualifications Score ───────────────────────────────
+
+@traceable(name="worker_c_experience_score", run_type="llm")
+def score_experience(resume: dict, extracted: dict, job: dict, yoe: float) -> dict:
+    """
+    Worker C: holistic assessment of years of experience, degree, certifications,
+    and domain similarity. YOE is pre-computed here in Python (not left to the
+    LLM) so the rubric subtraction is deterministic — the LLM only judges the
+    softer domain similarity component.
+    """
+    prompt = f"""
+You are an experienced hiring manager evaluating a candidate.
+
+Resume:
+{json.dumps(resume, indent=2)}
+
+Candidate's computed years of experience: {yoe}
+
+Job requirements:
+- Years needed: {extracted.get("required_years", "not specified")}
+- Degree needed: {extracted.get("required_degree", "not specified")}
+- Certifications needed: {json.dumps(extracted.get("required_certifications", []))}
+- Role: {job.get("title", "")} at {job.get("company", "")}
+
+Scoring rubric (apply exactly):
+- Start score = 100
+- If required_years is specified and candidate YOE is less: subtract 10 per missing year (max -30)
+- If required_degree is specified and not found in resume education: subtract 25
+- For each required certification missing from resume: subtract 10
+- If candidate's experience descriptions seem unrelated to this role's domain: subtract 15
+- Clamp final score between 0 and 100
+
+Return JSON:
+{{
+  "experience_fit": integer,
+  "years_meet": boolean,
+  "degree_meet": boolean,
+  "certifications_meet": boolean,
+  "similar_role_experience": "one sentence on domain relevance",
+  "reasoning": "brief overall explanation"
+}}
+"""
+    result = _llm(prompt)
+    return {
+        "experience_fit":          int(result.get("experience_fit", 0)),
+        "years_meet":              result.get("years_meet", False),
+        "degree_meet":             result.get("degree_meet", False),
+        "certifications_meet":     result.get("certifications_meet", False),
+        "similar_role_experience": result.get("similar_role_experience", ""),
+        "reasoning":               result.get("reasoning", ""),
+    }
+
+
+# ── Worker D — Recruiter POV Score ────────────────────────────────────────────
+
+@traceable(name="worker_d_recruiter_score", run_type="llm")
+def score_recruiter(resume: dict, job: dict, yoe: float) -> dict:
+    """
+    Worker D: simulates a recruiter's gut-check. Runs independently of Workers
+    B and C — it doesn't need the extracted requirements, just the resume and
+    job. The LLM infers role type (intern / junior / mid / senior / startup /
+    enterprise) and weights its scoring accordingly, which captures signals that
+    pure keyword or YOE matching misses (e.g. side projects for a startup role).
+    """
+    description_snippet = job.get("description", "")[:500]
+    prompt = f"""
+You are a recruiter. Score this candidate (0-100) for the role below.
+
+Candidate:
+- Years of experience: {yoe}
+- Top skills: {json.dumps(resume.get("skills", [])[:10])}
+- Summary: "{resume.get("summary", "")}"
+
+Job: {job.get("title", "")} at {job.get("company", "")}
+Description snippet: {description_snippet}
+
+Step 1 — Classify the role type: intern, junior, mid, senior, startup, or enterprise.
+Step 2 — Score using these weights for that role type:
+
+| Role type  | YOE weight | Education weight | Projects/Soft skills weight |
+|------------|------------|------------------|-----------------------------|
+| Intern/Junior | 20%    | 40%              | 40%                         |
+| Mid        | 40%        | 20%              | 40%                         |
+| Senior     | 70%        | 5%               | 25%                         |
+| Startup    | 30%        | 10%              | 60%                         |
+| Enterprise | 60%        | 30%              | 10%                         |
+
+Return JSON:
+{{
+  "recruiter_score": integer,
+  "is_internship_or_junior_role": boolean,
+  "company_culture_indicators": list,
+  "potential_judgment": "one sentence on candidate potential",
+  "would_interview": boolean
+}}
+"""
+    result = _llm(prompt)
+    return {
+        "recruiter_score":              int(result.get("recruiter_score", 0)),
+        "is_internship_or_junior_role": result.get("is_internship_or_junior_role", False),
+        "company_culture_indicators":   result.get("company_culture_indicators", []),
+        "potential_judgment":           result.get("potential_judgment", ""),
+        "would_interview":              result.get("would_interview", False),
+    }
+
+
+# ── Pipeline entry point ───────────────────────────────────────────────────────
 
 @traceable(name="score_job", run_type="tool")
 def score_job(resume: dict, job: dict) -> dict:
     """
-    Hybrid scoring system with embeddings + full trace visibility (LangSmith).
+    Runs all four workers in sequence and combines their scores into a single
+    weighted final score.
+
+    Weights:  keyword 20% | experience 45% | recruiter 35%
+
+    Return shape is identical to the previous scorer so app.py and db.py need
+    no changes. Sub-scores are printed to the terminal for debugging and are
+    available in LangSmith as child spans.
+
+    If any worker fails (returns an empty dict from _llm), its score defaults
+    to 0 — the pipeline always completes and returns something.
     """
-    # --------------------------------------------------
-    # 1. LLM STRUCTURED ANALYSIS
-    # --------------------------------------------------
-    prompt = f"""
-You are an expert recruiter and resume analyst.
+    yoe = _compute_yoe(resume.get("experience", []))
 
-Compare this resume against the job.
+    # A → B, C use A's output; D runs independently
+    extracted  = extract_skills(job)
+    kw         = score_keywords(resume, extracted)
+    exp        = score_experience(resume, extracted, job, yoe)
+    rec        = score_recruiter(resume, job, yoe)
 
-Return ONLY valid JSON with exactly this structure:
+    keyword_score    = kw.get("keyword_score", 0)
+    experience_score = exp.get("experience_fit", 0)
+    recruiter_score  = rec.get("recruiter_score", 0)
 
-{{
-  "job_skills": ["list of important technical skills, tools, keywords from the job"],
-  "experience_fit": <integer 0-100>,
-  "recruiter_score": <integer 0-100>,
-  "llm_summary": "one sentence explaining fit and biggest gaps"
-}}
-
-Scoring Definitions:
-
-experience_fit:
-- Measures how closely past experience aligns with responsibilities.
-- Consider transferable skills.
-- Consider relevant projects, tools, industries, seniority.
-
-recruiter_score:
-- Holistic recruiter judgment.
-- Would this candidate be worth interviewing?
-
-Rules:
-- Use concise keywords
-- Prefer technical skills/tools/platforms
-- Lowercase when possible
-- No extra text outside JSON
-
-RESUME:
-{json.dumps(resume, indent=2)}
-
-JOB TITLE: {job['title']} at {job['company']}
-
-JOB DESCRIPTION:
-{job['description']}
-"""
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=700,
-        response_format={"type": "json_object"},
-    )
-
-    result = json.loads(response.choices[0].message.content)
-
-    # --------------------------------------------------
-    # 2. PARSE LLM OUTPUT
-    # --------------------------------------------------
-    job_skills = result.get("job_skills", [])
-    experience_fit = int(result.get("experience_fit", 0))
-    recruiter_score = int(result.get("recruiter_score", 0))
-    llm_summary = result.get("llm_summary", "")
-
-    # --------------------------------------------------
-    # 3. BUILD RESUME TEXT
-    # --------------------------------------------------
-    resume_parts = []
-    resume_parts.extend(resume.get("skills", []))
-    resume_parts.append(resume.get("summary", ""))
-    for exp in resume.get("experience", []):
-        resume_parts.append(exp.get("title", ""))
-        resume_parts.append(exp.get("company", ""))
-        resume_parts.append(exp.get("description", ""))
-    resume_text = " ".join(resume_parts).lower()
-
-    # --------------------------------------------------
-    # 4. KEYWORD MATCH SCORE
-    # --------------------------------------------------
-    matched_keywords = []
-    missing_keywords = []
-    for skill in job_skills:
-        skill_clean = skill.lower().strip()
-        if skill_clean and skill_clean in resume_text:
-            matched_keywords.append(skill_clean)
-        else:
-            missing_keywords.append(skill_clean)
-    total_keywords = len(job_skills)
-    keyword_score = (len(matched_keywords) / total_keywords) * 100 if total_keywords > 0 else 50
-
-    # --------------------------------------------------
-    # 5. EMBEDDING SCORE
-    # --------------------------------------------------
-    job_text = f"{job['title']}\n{job['company']}\n{job['description']}"
-    embedding_response = client.embeddings.create(
-        model="text-embedding-3-small",
-        input=[resume_text, job_text]
-    )
-    resume_embedding = embedding_response.data[0].embedding
-    job_embedding = embedding_response.data[1].embedding
-    similarity = cosine_similarity(resume_embedding, job_embedding)
-    embedding_score = max(0, min(100, round(similarity * 100)))
-
-    # --------------------------------------------------
-    # 6. FINAL SCORE
-    # --------------------------------------------------
     final_score = round(
-        (keyword_score * 0.25) +
-        (embedding_score * 0.35) +
-        (experience_fit * 0.20) +
-        (recruiter_score * 0.20)
+        (keyword_score    * 0.20) +
+        (experience_score * 0.45) +
+        (recruiter_score  * 0.35)
     )
     final_score = max(0, min(100, final_score))
 
-    #Debugging purposes: Printing 2 calculated scores in terminal
+    # Terminal debug output (mirrors the previous scorer's print block)
     print("\n-----------------------------")
-    print(f"Job: {job['title']} @ {job['company']}")
-    print(f"Keyword Score: {round(keyword_score, 2)}")
-    print(f"Embedding Score: {round(embedding_score, 2)}")
-    print(f"Experience Fit: {experience_fit}")
-    print(f"Recruiter Score: {recruiter_score}")
-    print(f"Final Score: {final_score}")
+    print(f"Job: {job.get('title')} @ {job.get('company')}")
+    print(f"YOE computed: {yoe}")
+    print(f"Keyword Score:    {keyword_score}  (matched: {kw.get('matched_required')}, missing: {kw.get('missing_required')})")
+    print(f"Experience Score: {experience_score}  ({exp.get('reasoning', '')})")
+    print(f"Recruiter Score:  {recruiter_score}  (interview: {rec.get('would_interview')})")
+    print(f"Final Score:      {final_score}")
     print("-----------------------------\n")
 
+    # missing_keywords for the DB combines required + preferred gaps
+    missing_keywords = kw.get("missing_required", []) + kw.get("missing_preferred", [])
+    matched_keywords = kw.get("matched_required", []) + kw.get("matched_preferred", [])
+
     return {
-        "score": final_score,
-        "keywords": matched_keywords,
+        # ── Columns the rest of the app already reads ──
+        "score":            final_score,
+        "keywords":         matched_keywords,
         "missing_keywords": missing_keywords,
-        "llm_summary": llm_summary
+        "llm_summary":      exp.get("reasoning") or rec.get("potential_judgment", ""),
+
+        # ── Sub-scores available for future insights tab / judge ──
+        "sub_scores": {
+            "keyword_score":    keyword_score,
+            "experience_score": experience_score,
+            "recruiter_score":  recruiter_score,
+            "yoe":              yoe,
+            "extracted":        extracted,
+            "would_interview":  rec.get("would_interview"),
+            "kw_reasoning":     kw.get("reasoning"),
+            "exp_reasoning":    exp.get("reasoning"),
+            "rec_judgment":     rec.get("potential_judgment"),
+        }
     }
