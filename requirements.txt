@@ -1,0 +1,9 @@
+openai>=1.30.0
+httpx>=0.27.0
+beautifulsoup4>=4.12.0
+playwright>=1.44.0
+gradio>=4.36.0
+google-auth-oauthlib>=1.2.0
+google-api-python-client>=2.130.0
+python-dotenv>=1.0.0
+lxml>=5.2.0
