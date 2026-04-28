@@ -110,6 +110,17 @@ def save_resume(parsed: dict, filename: str = ""):
         conn.commit()
 
 
+def clear_job_score(job_id: int):
+    """Reset scoring columns to NULL for a single job."""
+    with get_connection() as conn:
+        conn.execute("""
+            UPDATE jobs
+            SET score = NULL, keywords = NULL, missing_keywords = NULL, llm_summary = NULL
+            WHERE id = ?
+        """, (job_id,))
+        conn.commit()
+
+
 def load_resume() -> dict | None:
     """Return the stored parsed resume dict, or None if none exists."""
     with get_connection() as conn:

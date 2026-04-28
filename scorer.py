@@ -1,109 +1,118 @@
 import json
 import os
+import math
 from openai import OpenAI
 from agents import trace
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
+OpenAIInstrumentor().instrument()
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-with trace("Resume Scoring"):
-    def score_job(resume: dict, job: dict) -> dict:
-        """
-        Hybrid scoring system:
-        - 40% Keyword Match
-        - 30% Experience Fit
-        - 30% Recruiter Score
 
-        Returns:
-        {
-            score,
-            keywords,
-            missing_keywords,
-            llm_summary
-        }
-        """
-
-        prompt = f"""
-    You are an expert recruiter and resume analyst.
-
-    Compare this resume against the job.
-
-    Return ONLY valid JSON with exactly this structure:
-
-    {{
-    "job_skills": ["list of important technical skills, tools, keywords from the job"],
-    "experience_fit": <integer 0-100>,
-    "recruiter_score": <integer 0-100>,
-    "llm_summary": "one sentence explaining fit and biggest gaps"
-    }}
-
-    Scoring Definitions:
-
-    experience_fit:
-    - Measures how closely past experience aligns with responsibilities.
-    - Consider transferable skills.
-    - Consider relevant projects, tools, industries, seniority.
-
-    recruiter_score:
-    - Holistic recruiter judgment.
-    - Would this candidate be worth interviewing based on resume vs job?
-
-    Rules:
-    - job_skills should be concise and relevant.
-    - Prefer technical skills, platforms, tools, certifications, methodologies.
-    - Use lowercase keywords when possible.
-    - No extra text outside JSON.
-
-    RESUME:
-    {json.dumps(resume, indent=2)}
-
-    JOB TITLE: {job['title']} at {job['company']}
-
-    JOB DESCRIPTION:
-    {job['description']}
+def cosine_similarity(vec1, vec2):
     """
-        with trace("Resume x Job Description Scorer"):
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=700,
-                response_format={"type": "json_object"},
-            )
+    Compute cosine similarity between two embedding vectors.
+    Returns value between -1 and 1.
+    """
+    dot = sum(a * b for a, b in zip(vec1, vec2))
+    norm1 = math.sqrt(sum(a * a for a in vec1))
+    norm2 = math.sqrt(sum(b * b for b in vec2))
 
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot / (norm1 * norm2)
+
+
+def score_job(resume: dict, job: dict) -> dict:
+    """
+    Hybrid scoring system with embeddings + full trace visibility
+    """
+
+    with trace("Resume x Job Description Scorer"):
+
+        # --------------------------------------------------
+        # 1. LLM STRUCTURED ANALYSIS
+        # --------------------------------------------------
+        prompt = f"""
+You are an expert recruiter and resume analyst.
+
+Compare this resume against the job.
+
+Return ONLY valid JSON with exactly this structure:
+
+{{
+  "job_skills": ["list of important technical skills, tools, keywords from the job"],
+  "experience_fit": <integer 0-100>,
+  "recruiter_score": <integer 0-100>,
+  "llm_summary": "one sentence explaining fit and biggest gaps"
+}}
+
+Scoring Definitions:
+
+experience_fit:
+- Measures how closely past experience aligns with responsibilities.
+- Consider transferable skills.
+- Consider relevant projects, tools, industries, seniority.
+
+recruiter_score:
+- Holistic recruiter judgment.
+- Would this candidate be worth interviewing?
+
+Rules:
+- Use concise keywords
+- Prefer technical skills/tools/platforms
+- Lowercase when possible
+- No extra text outside JSON
+
+RESUME:
+{json.dumps(resume, indent=2)}
+
+JOB TITLE: {job['title']} at {job['company']}
+
+JOB DESCRIPTION:
+{job['description']}
+"""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=700,
+            response_format={"type": "json_object"},
+        )
 
         result = json.loads(response.choices[0].message.content)
 
-        # -------------------------
-        # Parse LLM Response
-        # -------------------------
+        # --------------------------------------------------
+        # 2. PARSE LLM OUTPUT
+        # --------------------------------------------------
         job_skills = result.get("job_skills", [])
         experience_fit = int(result.get("experience_fit", 0))
         recruiter_score = int(result.get("recruiter_score", 0))
         llm_summary = result.get("llm_summary", "")
 
-        # -------------------------
-        # Build Resume Search Text
-        # -------------------------
-        resume_text_parts = []
-
-        if "skills" in resume:
-            resume_text_parts.extend(resume["skills"])
-
-        if "summary" in resume:
-            resume_text_parts.append(resume["summary"])
+        # --------------------------------------------------
+        # 3. BUILD RESUME TEXT
+        # --------------------------------------------------
+        resume_parts = []
+        resume_parts.extend(resume.get("skills", []))
+        resume_parts.append(resume.get("summary", ""))
 
         for exp in resume.get("experience", []):
-            resume_text_parts.append(exp.get("title", ""))
-            resume_text_parts.append(exp.get("company", ""))
-            resume_text_parts.append(exp.get("description", ""))
+            resume_parts.append(exp.get("title", ""))
+            resume_parts.append(exp.get("company", ""))
+            resume_parts.append(exp.get("description", ""))
 
-        resume_text = " ".join(resume_text_parts).lower()
+        resume_text = " ".join(resume_parts).lower()
 
-        # -------------------------
-        # Keyword Matching
-        # -------------------------
+        # --------------------------------------------------
+        # 4. KEYWORD MATCH SCORE
+        # --------------------------------------------------
         matched_keywords = []
         missing_keywords = []
 
@@ -117,21 +126,43 @@ with trace("Resume Scoring"):
 
         total_keywords = len(job_skills)
 
-        if total_keywords == 0:
-            keyword_score = 50
-        else:
-            keyword_score = (len(matched_keywords) / total_keywords) * 100
-
-        # -------------------------
-        # Final Hybrid Score
-        # -------------------------
-        final_score = round(
-            (keyword_score * 0.40) +
-            (experience_fit * 0.30) +
-            (recruiter_score * 0.30)
+        keyword_score = (
+            (len(matched_keywords) / total_keywords) * 100
+            if total_keywords > 0
+            else 50
         )
 
-        # Clamp 0-100
+        # --------------------------------------------------
+        # 5. EMBEDDING SCORE
+        # --------------------------------------------------
+        job_text = f"""
+{job['title']}
+{job['company']}
+{job['description']}
+"""
+
+        embedding_response = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=[resume_text, job_text]
+        )
+
+        resume_embedding = embedding_response.data[0].embedding
+        job_embedding = embedding_response.data[1].embedding
+
+        similarity = cosine_similarity(resume_embedding, job_embedding)
+
+        embedding_score = max(0, min(100, round(similarity * 100)))
+
+        # --------------------------------------------------
+        # 6. FINAL SCORE
+        # --------------------------------------------------
+        final_score = round(
+            (keyword_score * 0.25) +
+            (embedding_score * 0.35) +
+            (experience_fit * 0.20) +
+            (recruiter_score * 0.20)
+        )
+
         final_score = max(0, min(100, final_score))
 
         return {

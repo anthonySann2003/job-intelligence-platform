@@ -1,7 +1,7 @@
 import json
 import gradio as gr
 from job_search import search_jobs
-from db import init_db, save_jobs, load_jobs, get_unscored_jobs, update_job_score, save_resume, load_resume
+from db import init_db, save_jobs, load_jobs, get_unscored_jobs, update_job_score, save_resume, load_resume, clear_job_score
 from resume import parse_resume
 from scorer import score_job
 
@@ -32,7 +32,7 @@ def format_jobs(jobs: list[dict]) -> str:
 
         output += f"""
 ---
-**{i}. {job['title']}** @ {job['company']}
+**{i}. {job['title']}** @ {job['company']} *(ID: {job['id']})*
 📍 {job['location']}{"  |  💰 " + salary if salary else ""}
 {score_line}🔗 [View Job]({job['url']})
 
@@ -116,6 +116,16 @@ def score_saved_jobs():
     yield f"✅ Scored {len(results)}/{len(jobs)} jobs.", format_jobs(results)
 
 
+def clear_score(job_id_str: str):
+    try:
+        job_id = int(job_id_str)
+    except ValueError:
+        return "❌ Enter a valid numeric job ID.", show_saved()[0]
+    clear_job_score(job_id)
+    jobs = load_jobs()
+    return f"✅ Score cleared for job ID {job_id}.", format_jobs(jobs)
+
+
 with gr.Blocks(title="Job Dashboard") as app:
     gr.Markdown("# 🔍 Job Dashboard")
 
@@ -133,6 +143,13 @@ with gr.Blocks(title="Job Dashboard") as app:
         saved_status = gr.Textbox(label="Status", interactive=False)
         saved_results = gr.Markdown()
         load_btn.click(fn=show_saved, outputs=[saved_results, saved_status])
+
+        gr.Markdown("---")
+        gr.Markdown("**🧪 Testing — Clear Score by Job ID**")
+        with gr.Row():
+            clear_id_input = gr.Textbox(label="Job ID", scale=1, placeholder="e.g. 42")
+            clear_btn = gr.Button("Clear Score", variant="stop", scale=1)
+        clear_btn.click(fn=clear_score, inputs=[clear_id_input], outputs=[saved_status, saved_results])
 
     with gr.Tab("Resume"):
         gr.Markdown("Upload your resume, then score it against all saved jobs.")
