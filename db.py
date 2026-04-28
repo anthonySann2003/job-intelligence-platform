@@ -1,4 +1,6 @@
 import sqlite3
+import json
+from datetime import datetime
 
 DB_PATH = "jobs.db"
 
@@ -37,6 +39,17 @@ def init_db():
                 conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {coltype}")
             except Exception:
                 pass  # column already exists, skip
+
+        # Single-row resume store
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS resumes (
+                id          INTEGER PRIMARY KEY,
+                parsed_json TEXT,
+                filename    TEXT,
+                uploaded_at TEXT
+            )
+        """)
+
         conn.commit()
 
 
@@ -84,3 +97,21 @@ def update_job_score(job_id: int, score: float, keywords: str, missing_keywords:
             WHERE id = ?
         """, (score, keywords, missing_keywords, llm_summary, job_id))
         conn.commit()
+
+
+def save_resume(parsed: dict, filename: str = ""):
+    """Persist a single parsed resume, replacing any existing one."""
+    with get_connection() as conn:
+        conn.execute("DELETE FROM resumes")
+        conn.execute("""
+            INSERT INTO resumes (id, parsed_json, filename, uploaded_at)
+            VALUES (1, ?, ?, ?)
+        """, (json.dumps(parsed), filename, datetime.utcnow().isoformat()))
+        conn.commit()
+
+
+def load_resume() -> dict | None:
+    """Return the stored parsed resume dict, or None if none exists."""
+    with get_connection() as conn:
+        row = conn.execute("SELECT parsed_json FROM resumes LIMIT 1").fetchone()
+    return json.loads(row[0]) if row else None

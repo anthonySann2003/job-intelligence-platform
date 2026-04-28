@@ -1,14 +1,14 @@
 import json
 import gradio as gr
 from job_search import search_jobs
-from db import init_db, save_jobs, load_jobs, get_unscored_jobs, update_job_score
+from db import init_db, save_jobs, load_jobs, get_unscored_jobs, update_job_score, save_resume, load_resume
 from resume import parse_resume
 from scorer import score_job
 
 init_db()
 
-# Held in memory after parsing — scorer reads from here
-parsed_resume = {}
+# Pre-populate from DB so scoring works after a restart without re-uploading
+parsed_resume = load_resume() or {}
 
 
 def format_jobs(jobs: list[dict]) -> str:
@@ -66,6 +66,7 @@ def upload_resume(file):
         return "No file uploaded.", ""
     try:
         parsed_resume = parse_resume(file.name)
+        save_resume(parsed_resume, filename=file.name)
         display = json.dumps(parsed_resume, indent=2)
         status = f"✅ Resume parsed for {parsed_resume.get('name', 'Unknown')} — ready to score."
         return status, display
@@ -135,9 +136,13 @@ with gr.Blocks(title="Job Dashboard") as app:
 
     with gr.Tab("Resume"):
         gr.Markdown("Upload your resume, then score it against all saved jobs.")
+        resume_status = gr.Textbox(
+            label="Status",
+            interactive=False,
+            value=f"✅ Resume loaded from previous session ({parsed_resume.get('name', '')})." if parsed_resume else "",
+        )
         pdf_upload = gr.File(label="Upload Resume (PDF)", file_types=[".pdf"])
         parse_btn = gr.Button("Parse Resume", variant="primary")
-        resume_status = gr.Textbox(label="Status", interactive=False)
         resume_output = gr.Code(label="Parsed Resume (JSON)", language="json")
         parse_btn.click(fn=upload_resume, inputs=[pdf_upload], outputs=[resume_status, resume_output])
 
