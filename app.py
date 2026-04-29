@@ -12,21 +12,12 @@ from scorer import score_job
 init_db()
 
 # ── Session globals ────────────────────────────────────────────────────────────
-# Single source of truth — the resumes table. Profile tab reads and writes here
-# too, so there is no separate profile record to keep in sync.
-
 parsed_resume: dict = load_resume() or {}
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _resume_to_profile(resume: dict) -> dict:
-    """
-    Flatten the nested resume dict into display-friendly strings for the
-    Profile tab fields. Education and experience dicts become one-per-line
-    strings the user can read and edit directly.
-    """
-    # Education — already a plain string after a profile save, else list of dicts
     raw_edu = resume.get("education", [])
     if isinstance(raw_edu, str):
         education_str = raw_edu
@@ -40,7 +31,6 @@ def _resume_to_profile(resume: dict) -> dict:
             lines.append(" ".join(parts))
         education_str = "\n".join(lines)
 
-    # Experience — same dual-form handling
     raw_exp = resume.get("experience", [])
     if isinstance(raw_exp, str):
         experience_str = raw_exp
@@ -73,11 +63,6 @@ def _resume_to_profile(resume: dict) -> dict:
 def _profile_fields_to_dict(
     name, email, summary, skills, yoe, certifications, education, experience
 ) -> dict:
-    """
-    Pack Gradio field values back into a dict that can be merged into
-    parsed_resume. Skills and certifications are split from comma-separated
-    strings into lists so the scorer can consume them directly.
-    """
     try:
         yoe_clean = float(yoe) if yoe not in (None, "", "None") else None
     except (ValueError, TypeError):
@@ -121,22 +106,61 @@ def format_jobs(jobs: list[dict]) -> str:
 **{i}. {job['title']}** @ {job['company']} *(ID: {job['id']})*
 📍 {job['location']}{"  |  💰 " + salary if salary else ""}
 {score_line}🔗 [View Job]({job['url']})
-
-{job['description'][:300]}...
 """
     return output.strip()
 
 
 def run_search(keywords: str, location: str):
+    global parsed_resume
     if not keywords.strip():
         return "Please enter at least one keyword.", ""
     try:
         jobs = search_jobs(keywords, location)
     except Exception as e:
-        return f"Error: {e}", ""
+        return f"Error fetching jobs: {e}", ""
+
     inserted = save_jobs(jobs)
     status = f"✅ Found {len(jobs)} jobs — {inserted} new, {len(jobs) - inserted} already saved."
-    return format_jobs(jobs), status
+
+    # Score new jobs inline if resume is loaded
+    if parsed_resume:
+        newly_saved = [j for j in jobs if j.get("url")]
+        scored_count = 0
+        for job in newly_saved:
+            # Only score if this job was freshly inserted (no id yet in our list,
+            # so we look it up by url from the full DB to get its id)
+            pass  # handled below via load after save
+
+        # Re-load from DB so we have ids, then score any that are unscored
+        all_unscored = get_unscored_jobs()
+        # Only score jobs that came from this search (match by url)
+        this_search_urls = {j["url"] for j in jobs}
+        to_score = [j for j in all_unscored if j["url"] in this_search_urls]
+
+        for job in to_score:
+            try:
+                result = score_job(parsed_resume, job)
+                update_job_score(
+                    job_id=job["id"],
+                    score=result["score"],
+                    keywords=json.dumps(result.get("keywords", [])),
+                    missing_keywords=json.dumps(result.get("missing_keywords", [])),
+                    llm_summary=result.get("llm_summary", ""),
+                )
+                job.update({
+                    "score":            result["score"],
+                    "keywords":         json.dumps(result.get("keywords", [])),
+                    "missing_keywords": json.dumps(result.get("missing_keywords", [])),
+                    "llm_summary":      result.get("llm_summary", ""),
+                })
+                scored_count += 1
+            except Exception as e:
+                continue
+
+        if parsed_resume:
+            status += f" Scored {scored_count}/{len(to_score)} jobs."
+
+    return format_jobs(jobs if not parsed_resume else to_score or jobs), status
 
 
 def show_saved():
@@ -208,10 +232,6 @@ def score_saved_jobs():
 # ── Profile tab ────────────────────────────────────────────────────────────────
 
 def load_from_resume():
-    """
-    Populate all profile fields from the current in-memory parsed_resume.
-    Does NOT save — user reviews the fields and clicks Save Profile themselves.
-    """
     if not parsed_resume:
         return ("", "", "", "", None, "", "", "", "❌ No resume loaded. Upload and parse your resume first.")
     p = _resume_to_profile(parsed_resume)
@@ -229,50 +249,31 @@ def load_from_resume():
 
 
 def handle_save_profile(name, email, summary, skills, yoe, certifications, education, experience):
-    """
-    Merge the edited field values back into parsed_resume and write to the
-    resumes table. Single save, single table — no sync required.
-    The raw nested experience/education dicts are preserved on parsed_resume
-    since the profile tab doesn't expose them in structured form.
-    """
     global parsed_resume
-
     edits = _profile_fields_to_dict(
         name, email, summary, skills, yoe, certifications, education, experience
     )
-
-    # Merge edits onto the existing resume dict so unexposed fields are kept
     parsed_resume = {**parsed_resume, **edits}
     save_resume(parsed_resume)
-
     return "✅ Profile saved."
 
 
 # ── UI ─────────────────────────────────────────────────────────────────────────
 
-# Helper to safely read a flat field from parsed_resume for initial field values,
-# handling both list-of-strings and plain string forms (skills, certs).
-# Do NOT use for education/experience — those are lists of dicts and need
-# _resume_to_profile() to flatten them properly.
 def _pf(key, default=""):
     val = parsed_resume.get(key, default)
     if isinstance(val, list):
-        # Guard: if it's a list of dicts (education/experience), return default
         if val and isinstance(val[0], dict):
             return default
         return ", ".join(val)
     return val or default
 
-# Pre-flatten education and experience for initial UI field values.
-# After a profile save these fields are stored as plain strings, but on first
-# load from the parser they are lists of dicts — _resume_to_profile handles both.
 _initial_profile = _resume_to_profile(parsed_resume) if parsed_resume else {}
 
 
 with gr.Blocks(title="Job Dashboard") as app:
     gr.Markdown("# 🔍 Job Dashboard")
 
-    # ── Search ──────────────────────────────────────────────────────────────────
     with gr.Tab("Search"):
         with gr.Row():
             keywords = gr.Textbox(label="Keywords", placeholder="e.g. python data engineer")
@@ -282,7 +283,6 @@ with gr.Blocks(title="Job Dashboard") as app:
         search_results = gr.Markdown()
         search_btn.click(fn=run_search, inputs=[keywords, location], outputs=[search_results, search_status])
 
-    # ── Saved Jobs ──────────────────────────────────────────────────────────────
     with gr.Tab("Saved Jobs"):
         load_btn      = gr.Button("Load Saved Jobs", variant="secondary")
         saved_status  = gr.Textbox(label="Status", interactive=False)
@@ -296,7 +296,6 @@ with gr.Blocks(title="Job Dashboard") as app:
             clear_btn      = gr.Button("Clear Score", variant="stop", scale=1)
         clear_btn.click(fn=clear_score, inputs=[clear_id_input], outputs=[saved_status, saved_results])
 
-    # ── Resume ──────────────────────────────────────────────────────────────────
     with gr.Tab("Resume"):
         gr.Markdown("Upload your resume, then score it against all saved jobs.")
         resume_status = gr.Textbox(
@@ -315,7 +314,6 @@ with gr.Blocks(title="Job Dashboard") as app:
         score_results = gr.Markdown()
         score_btn.click(fn=score_saved_jobs, outputs=[score_status, score_results])
 
-    # ── Profile ─────────────────────────────────────────────────────────────────
     with gr.Tab("Profile"):
         gr.Markdown(
             "Edit your profile below — changes here update the resume the scorer uses. "
@@ -330,7 +328,6 @@ with gr.Blocks(title="Job Dashboard") as app:
             save_profile_btn = gr.Button("Save Profile", variant="primary")
 
         gr.Markdown("---")
-
         gr.Markdown("### Basic Info")
         with gr.Row():
             prof_name  = gr.Textbox(label="Name",  value=parsed_resume.get("name", ""))
