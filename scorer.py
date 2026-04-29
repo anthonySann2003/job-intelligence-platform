@@ -1,5 +1,7 @@
 import json
 import os
+import re
+from bs4 import BeautifulSoup
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -9,47 +11,6 @@ from langsmith.wrappers import wrap_openai
 load_dotenv()
 
 client = wrap_openai(OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
-
-
-#Cleaning scraped text ---------------------------------------------------
-import re
-
-def clean_scraped_text(text):
-    if not text:
-        return ""
-    
-    # 1. Remove Javascript and CSS patterns (common junk)
-    text = re.sub(r'<script.*?>.*?</script>', '', text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r'<style.*?>.*?</style>', '', text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r'\{.*?\}', '', text) # Removes loose CSS/JS blocks
-    
-    # 2. Remove common web "noise" strings
-    noise_patterns = [
-        r'document\.write\(.*?\);', 
-        r'window\..*?;', 
-        r'function\(.*?\)',
-        r'var\s+\w+\s*=',
-        r'\\r\\n', # Literal \r\n characters
-    ]
-    for pattern in noise_patterns:
-        text = re.sub(pattern, '', text, flags=re.IGNORECASE)
-
-    # 3. Fix Unicode/Artifacts
-    # Replace the "Non-Breaking Hyphen" and other fancy characters with standard ones
-    text = text.replace('\u2011', '-').replace('\u2013', '-').replace('\u2014', '-')
-    text = text.replace('\xa0', ' ') # Non-breaking space
-    
-    # 4. Final Polish: Keep only lines that look like English sentences
-    # If a line is just " { " or " if (x) ", it gets dropped
-    lines = text.split('\n')
-    clean_lines = []
-    for line in lines:
-        l = line.strip()
-        # Keep lines that start with a letter/number and are reasonably long
-        if len(l) > 10 and any(c.isalpha() for c in l[:5]):
-            clean_lines.append(l)
-
-    return "\n".join(clean_lines)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -339,17 +300,6 @@ def score_job(resume: dict, job: dict) -> dict:
     All workers receive the same resume dict so they always see the latest
     profile-edited values for skills, summary, certifications, and YOE.
     """
-    raw_desc = job.get("description", "")
-    
-    # CLEAN THE JUNK FIRST
-    clean_desc = clean_scraped_text(raw_desc)
-    
-    # Optional: Update the job object so all downstream workers see clean text
-    job["description"] = clean_desc
-    
-    # Now write to your audit file safely
-    with open("filtered_descriptions.md", "a", encoding="utf-8") as f:
-        f.write(f"## {job.get('title')}\n{clean_desc}\n\n")
 
     yoe = _get_yoe(resume)
 
