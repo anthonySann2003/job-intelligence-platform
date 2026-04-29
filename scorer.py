@@ -63,21 +63,69 @@ def _normalise_skills(resume: dict) -> list:
 @traceable(name="worker_a_extract_skills", run_type="llm")
 def extract_skills(job: dict) -> dict:
     prompt = f"""
-You are an expert at parsing job descriptions for technical Computer Science and Engineering roles. Extract ONLY hard, measurable skills, requirements, tools, or platforms.
+<role>
+You are an expert technical recruiter and job description analyst. Your job is to extract structured requirements from a job posting with high precision. You only extract what is explicitly stated — you never infer or assume requirements that are not directly written in the posting.
+</role>
 
-Return valid JSON with exactly these fields:
-- required_skills: list of technical HARD skills/tools that are mandatory for position, NOT soft skills or buzz words
-    Good skills to return: Python, SQL, R, Salesforce, LangChain, MCP, Agentic AI, CI/CD Pipelines
-- preferred_skills: list of skills that are "nice to have" or "preferred"
-- required_years: integer (number of years of experience required for the role, return 0 ONLY if there is no mention whatsoever of years of experience.
-- required_degree: string (e.g. "bachelor's in CS"), or null if not mentioned
-- required_certifications: list (empty if none)
-- position_level: string (return the level of the position as one of these options: Internship, entry-level, mid-level, senior-level, or director)
-
+<job_information>
 Job Title: {job.get("title", "")}
 Company: {job.get("company", "")}
 Job Description:
 {job.get("description", "")}
+</job_information>
+
+<instructions>
+You will extract structured data from the job posting above in two passes.
+
+PASS 1 — QUOTE EXTRACTION:
+Read the job description carefully and pull out the exact sentences or phrases that mention each of the following. If nothing in the description mentions a category, write "not mentioned" for that category.
+
+- Skills and tools: exact phrases that list required or preferred technical skills, tools, platforms, or languages
+- Experience: exact phrases that mention years of experience
+- Education: exact phrases that mention degree requirements
+- Certifications: exact phrases that mention required or preferred certifications
+- Seniority: exact phrases that indicate the level of the role (e.g. "senior", "entry level", "intern", "3+ years")
+
+PASS 2 — STRUCTURED EXTRACTION:
+Using ONLY the quoted phrases from Pass 1 as your source, extract the following fields. Do not use any information from the job description that you did not quote in Pass 1.
+
+Fields to extract:
+- required_skills: technical HARD skills, tools, platforms, or languages that are explicitly stated as mandatory or required. Do NOT include soft skills, personality traits, or buzzwords.
+    Good examples: Python, SQL, React, AWS, Docker, LangChain, CI/CD, Kubernetes
+    Bad examples: "strong communicator", "team player", "fast learner", "problem solver"
+- preferred_skills: technical skills explicitly described as "preferred", "nice to have", "a plus", or "bonus"
+- required_years: integer of years of experience explicitly stated. Return 0 ONLY if years of experience are not mentioned anywhere in the posting.
+- required_degree: the exact degree requirement as a string (e.g. "Bachelor's in Computer Science"), or null if not mentioned
+- required_certifications: list of certifications explicitly named in the posting, empty list if none
+- position_level: classify the role as exactly one of these options based only on what the posting states: Internship, entry-level, mid-level, senior-level, director
+</instructions>
+
+<critical_rules>
+- Every field in Pass 2 must be grounded in a quote from Pass 1. If you did not quote it, do not extract it.
+- Never infer a skill because it seems likely for the role type. Only extract what is written.
+- Never add soft skills to required_skills or preferred_skills under any circumstances.
+- If required_years is ambiguous or not stated, return 0.
+- If position_level is not explicitly stated, infer it only from the job title, not from the description.
+</critical_rules>
+
+<output_format>
+Return only valid JSON with exactly these fields:
+{{
+  "pass1_quotes": {{
+    "skills_quotes": "exact quoted text or not mentioned",
+    "experience_quotes": "exact quoted text or not mentioned",
+    "education_quotes": "exact quoted text or not mentioned",
+    "certifications_quotes": "exact quoted text or not mentioned",
+    "seniority_quotes": "exact quoted text or not mentioned"
+  }},
+  "required_skills": list,
+  "preferred_skills": list,
+  "required_years": integer,
+  "required_degree": string or null,
+  "required_certifications": list,
+  "position_level": "Internship | entry-level | mid-level | senior-level | director"
+}}
+</output_format>
 """
     result = _llmUpgraded(prompt)
     return {
@@ -86,9 +134,9 @@ Job Description:
         "required_years":          result.get("required_years"),
         "required_degree":         result.get("required_degree"),
         "required_certifications": result.get("required_certifications", []),
-        "position_level":          result.get("position_level", [])
+        "position_level":          result.get("position_level", ""),
+        "pass1_quotes":            result.get("pass1_quotes", {}),
     }
-
 
 # ── Worker B — Keyword Score ───────────────────────────────────────────────────
 
