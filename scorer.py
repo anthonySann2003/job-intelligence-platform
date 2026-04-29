@@ -353,47 +353,101 @@ Return only valid JSON. The experience_fit value MUST equal 100 minus the sum of
 def score_recruiter(resume: dict, job: dict) -> dict:
     yoe    = _get_yoe(resume)
     skills = _normalise_skills(resume)
-
-    description_snippet = job.get("description", "")[:500]
+    candidate_level = resume.get("professional_level", "not specified")
 
     prompt = f"""
-You are a recruiter. Score this candidate (0-100) for the role below.
+<role>
+You are a experienced recruiter doing a gut-check evaluation of a candidate for a role. You are direct, consistent, and follow the scoring rubric exactly as written.
+</role>
 
-Candidate:
+<candidate_information>
+- Name: {resume.get("name", "")}
+- Summary: {resume.get("summary", "")}
 - Years of experience: {yoe}
-- Top skills: {json.dumps(skills[:10])}
-- Summary: "{resume.get("summary", "")}"
+- Professional level: {candidate_level}
+- Skills: {json.dumps(skills[:15])}
+- Certifications: {json.dumps(resume.get("certifications", []))}
+</candidate_information>
 
-Job: {job.get("title", "")} at {job.get("company", "")}
-Description snippet: {description_snippet}
+<job_information>
+- Role: {job.get("title", "")} at {job.get("company", "")}
+- Full description: {job.get("description", "")}
+</job_information>
 
-Step 1 — Classify the role type: intern, junior, mid, senior, startup, or enterprise.
-Step 2 — Score using these weights for that role type:
+<scoring_rules>
+Start at 100. Apply each deduction in order. Track your running score after each step.
 
-| Role type     | YOE weight | Education weight | Projects/Soft skills weight |
-|---------------|------------|------------------|-----------------------------|
-| Intern/Junior | 20%        | 40%              | 40%                         |
-| Mid           | 40%        | 20%              | 40%                         |
-| Senior        | 70%        | 5%               | 25%                         |
-| Startup       | 30%        | 10%              | 60%                         |
-| Enterprise    | 60%        | 30%              | 10%                         |
+STEP 1 — CLASSIFY ROLE SENIORITY:
+Classify the role as exactly one of: Intern, Junior, Mid, Senior.
+Use the job title and description to determine this. This classification drives the weights in Step 2.
 
-Return JSON:
+STEP 2 — YEARS OF EXPERIENCE FIT:
+Weights by role type:
+- Intern: YOE is not a major factor, deduct 0 unless candidate has 0 years and role requires some hands-on experience
+- Junior: If candidate has less than 1 year for a role expecting some experience, deduct 15 points
+- Mid: If candidate's YOE is more than 2 years below what the role implies, deduct 25 points
+- Senior: If candidate's YOE is more than 3 years below what the role implies, deduct 35 points
+
+STEP 3 — PROFESSIONAL LEVEL ALIGNMENT:
+The seniority levels ranked from 1 (lowest) to 5 (highest) are:
+1 = Internship
+2 = Entry-level
+3 = Mid-level
+4 = Senior-level
+5 = Director
+
+- Find the number for the candidate's professional level ({candidate_level}) and the number for the classified role seniority from Step 1.
+- If the candidate's number is LESS THAN the role's number by 2 or more: deduct 20 points.
+- If the candidate's number is LESS THAN the role's number by exactly 1: deduct 10 points.
+- If the candidate's number is GREATER THAN OR EQUAL TO the role's number: deduct 0 points.
+
+STEP 4 — SKILLS RELEVANCE:
+As a recruiter skimming the resume, how well do the candidate's skills match the role's needs overall?
+- Candidate's skills are mostly unrelated to the role: deduct 25 points.
+- Candidate has some relevant skills but clear gaps: deduct 15 points.
+- Candidate's skills are a reasonable match: deduct 0 points.
+
+STEP 5 — SUMMARY AND OVERALL IMPRESSION:
+Does the candidate's summary and background give a recruiter confidence they understand this type of role?
+- Summary is completely unrelated to the role domain: deduct 10 points.
+- Summary is vague or gives no signal either way: deduct 5 points.
+- Summary is relevant and gives a clear picture: deduct 0 points.
+
+STEP 6 — FINAL SCORE:
+- Your running score after Step 5 is your recruiter_score. Copy that number directly.
+- Do NOT apply any additional deductions beyond Steps 1-5.
+- Do NOT perform any further arithmetic. The running score is already the answer.
+- Clamp between 0 and 100.
+</scoring_rules>
+
+<critical_rules>
+- You have exactly 5 steps to apply deductions. There are no other deductions.
+- Any deduction not listed in Steps 1-5 is forbidden. Do not invent new penalties.
+- The running score after Step 5 = recruiter_score. Do not subtract it from anything.
+</critical_rules>
+
+<output_format>
+Return only valid JSON.
 {{
   "recruiter_score": integer,
+  "role_classification": "Intern | Junior | Mid | Senior",
   "is_internship_or_junior_role": boolean,
-  "company_culture_indicators": list,
-  "potential_judgment": "one sentence on candidate potential",
-  "would_interview": boolean
+  "fit_flags": ["short specific reason the candidate is or isn't a fit", "another reason"],
+  "potential_judgment": "one sentence on the candidate's overall potential for this role",
+  "would_interview": boolean,
+  "reasoning": "walk through each step: what you checked, what you deducted, and your running score after each step"
 }}
+</output_format>
 """
     result = _llm(prompt)
     return {
         "recruiter_score":              int(result.get("recruiter_score", 0)),
+        "role_classification":          result.get("role_classification", ""),
         "is_internship_or_junior_role": result.get("is_internship_or_junior_role", False),
-        "company_culture_indicators":   result.get("company_culture_indicators", []),
+        "fit_flags":                    result.get("fit_flags", []),
         "potential_judgment":           result.get("potential_judgment", ""),
         "would_interview":              result.get("would_interview", False),
+        "reasoning":                    result.get("reasoning", ""),
     }
 
 
@@ -413,9 +467,9 @@ def score_job(resume: dict, job: dict) -> dict:
     recruiter_score  = rec.get("recruiter_score", 0)
 
     final_score = round(
-        (keyword_score    * 0.20) +
+        (keyword_score    * 0.25) +
         (experience_score * 0.45) +
-        (recruiter_score  * 0.35)
+        (recruiter_score  * 0.30)
     )
     final_score = max(0, min(100, final_score))
 
