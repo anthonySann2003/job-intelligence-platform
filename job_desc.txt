@@ -1,0 +1,467 @@
+Are you passionate about leveraging Descriptive, Predictive, and Prescriptive analytics to drive impactful marketing strategies? If so, this role is perfect for you! As a Senior Data Scientist, you will collaborate with the Chase Auto Marketing team to assess marketing effectiveness, optimize audience targeting, and provide strategic insights that shape the future of our marketing initiatives. You will work closely with Marketing Strategy Managers, Brand Managers, Dealer Relationship Managers, …Data Science Intern - Summer 2026 Job in Gramercy Park and Murray Hill, NY
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-T4VKFS85');
+window.dataLayer = window.dataLayer || [];
+window.addEventListener("load", function(e) {    setTimeout(function() {
+var tokenData = "eyJhbGciOiJIUzI1NiJ9.eyJlcG9jaHRpbWUiOjE3Nzc0MjY0NTYsInR5cGUiOiJkZXRhaWxzIiwiZGVsZXRlZCI6IiIsImRlZHVwZWQiOiIiLCJub3RpZl9pZCI6bnVsbCwiZGNpZCI6Ijg5NDU2NjYwLTQzNmItMTFmMS05ODczLWQxYmQyNmZjYTE3NyIsImlzX3JlY2pvYnMiOjAsImFnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzExNS4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiY2xpY2tfaWQiOiJob0pKaVd0RDhSR2JHSkNhZjIwb3dnIiwiY29udGV4dCI6ImpvYnNfVVMiLCJhZF9pZCI6IjU1ODA2NDgzODUiLCJzb3VyY2VfaWQiOjUwNzI2OCwic2UiOm51bGwsImlwIjoiMjYwMTo4NTpjNzgwOjYwNDY6Mjk0YjpkMjQ0OjRmM2Y6N2JlMiJ9.Tpt9XOYU-XyiUMPvDeaiYf1NrYEeWHr8t8OsdDM_wmY";
+var urlData   = "https://www.adzuna.com/_count";
+if (window.FormData && navigator.sendBeacon) {
+formData.append("token", tokenData);
+if (navigator.sendBeacon(urlData, formData)) {
+$.ajax({ type: 'POST', url: urlData, data: { token: tokenData } });
+Data Science Intern - Summer 2026
+Greater New York Mutual Insurance Company
+DescriptionPosition Summary: The purpose of this job is to explore external data resources, to extract discovered data through web scraping, and to evaluate the effectiveness of the external data on model improvement.
+Essential Duties and Responsibilities:
+Explore potential useful external data resources.
+Extract external data through web scraping.
+Evaluate the effectiveness of external data on model improvement.
+Participates in special projects and performs additional duties as required.
+QualificationsEducation and Experience:
+College student from an accredited institution preferably in Computer Science or Data Science
+Experience in web scraping preferred.
+Experience to pull data using API call preferred.
+Experience with developing regression model a plus.
+Proficient in programming Python, R, or SQL.
+Proficient in Microsoft Office Suites.
+Good verbal and written communication skills.
+The salary range for this role is $16.50/hr - $30/hr. The listed annual salary range posted for this position is subject to change and may vary depending on performance, education, experience, skills, geographic location, travel requirements, demonstrated proficiency in the competencies required for the role and business needs.  Base pay is just one component of GNY’s total compensation package for employees. Other rewards include eligibility for an annual discretionary bonus based on performance.
+The number of jobs in each salary range for all:
+By creating an alert, you agree to our T&amp;Cs and Privacy Notice, and Cookie Use.
+2026 Summer Data Analytics & Actuarial Intern
+Engineering Intern (Summer 2026)
+"item" : "https://www.adzuna.com",
+"item" : "https://www.adzuna.com/gramercy-park-murray-hill-ny/it-jobs"
+"name" : "Data Science Intern - Summer 2026"
+"@context" : "https://schema.org"
+"title" : "Data Science Intern - Summer 2026",
+"@context" : "http://schema.org/",
+"validThrough" : "2026-05-12T05:14:46",
+"datePosted" : "2026-01-12T12:33:43",
+"description" : "\u003cstrong\u003eDescription\u003c/strong\u003e\u003cbr /\u003e\u003cp\u003e\u003cstrong\u003ePosition Summary\u003c/strong\u003e: The purpose of this job is to explore external data resources, to extract discovered data through web scraping, and to evaluate the effectiveness of the external data on model improvement. \u003c/p\u003e\n\u003cstrong\u003eEssential Duties and Responsibilities:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eExplore potential useful external data resources.\u003c/li\u003e\n\u003cli\u003eExtract external data through web scraping.\u003c/li\u003e\n\u003cli\u003eEvaluate the effectiveness of external data on model improvement.\u003c/li\u003e\n\u003cli\u003eParticipates in special projects and performs additional duties as required.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cbr /\u003e\u003cbr /\u003e\u003cstrong\u003eQualifications\u003c/strong\u003e\u003cbr /\u003e\u003cstrong\u003eEducation and Experience:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eCollege student from an accredited institution preferably in Computer Science or Data Science\u003c/li\u003e\n\u003cli\u003eExperience in web scraping preferred.\u003c/li\u003e\n\u003cli\u003eExperience to pull data using API call preferred.\u003c/li\u003e\n\u003cli\u003eExperience with developing regression model a plus.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cstrong\u003eSkills:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eProficient in programming Python, R, or SQL.\u003c/li\u003e\n\u003cli\u003eProficient in Microsoft Office Suites.\u003c/li\u003e\n\u003cli\u003eUnderstand data structures.\u003c/li\u003e\n\u003cli\u003eGood verbal and written communication skills.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThe salary range for this role is $16.50/hr - $30/hr. The listed annual salary range posted for this position is subject to change and may vary depending on performance, education, experience, skills, geographic location, travel requirements, demonstrated proficiency in the competencies required for the role and business needs.  Base pay is just one component of GNY’s total compensation package for employees. Other rewards include eligibility for an annual discretionary bonus based on performance.\u003c/p\u003e\n\u003cbr /\u003e",
+"addressLocality" : "Gramercy Park and Murray Hill, NY",
+"name" : "Greater New York Mutual Insurance Company",
+By creating an alert, you agree to our T&amp;Cs and Privacy Notice, and Cookie Use.
+"description" : "\u003cstrong\u003eDescription\u003c/strong\u003e\u003cbr /\u003e\u003cp\u003e\u003cstrong\u003ePosition Summary\u003c/strong\u003e: The purpose of this job is to explore external data resources, to extract discovered data through web scraping, and to evaluate the effectiveness of the external data on model improvement. \u003c/p\u003e\n\u003cstrong\u003eEssential Duties and Responsibilities:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eExplore potential useful external data resources.\u003c/li\u003e\n\u003cli\u003eExtract external data through web scraping.\u003c/li\u003e\n\u003cli\u003eEvaluate the effectiveness of external data on model improvement.\u003c/li\u003e\n\u003cli\u003eParticipates in special projects and performs additional duties as required.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cbr /\u003e\u003cbr /\u003e\u003cstrong\u003eQualifications\u003c/strong\u003e\u003cbr /\u003e\u003cstrong\u003eEducation and Experience:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eCollege student from an accredited institution preferably in Computer Science or Data Science\u003c/li\u003e\n\u003cli\u003eExperience in web scraping preferred.\u003c/li\u003e\n\u003cli\u003eExperience to pull data using API call preferred.\u003c/li\u003e\n\u003cli\u003eExperience with developing regression model a plus.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cstrong\u003eSkills:\u003c/strong\u003e\n\u003cul\u003e\n\u003cli\u003eProficient in programming Python, R, or SQL.\u003c/li\u003e\n\u003cli\u003eProficient in Microsoft Office Suites.\u003c/li\u003e\n\u003cli\u003eUnderstand data structures.\u003c/li\u003e\n\u003cli\u003eGood verbal and written communication skills.\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eThe salary range for this role is $16.50/hr - $30/hr. The listed annual salary range posted for this position is subject to change and may vary depending on performance, education, experience, skills, geographic location, travel requirements, demonstrated proficiency in the competencies required for the role and business needs.  Base pay is just one component of GNY’s total compensation package for employees. Other rewards include eligibility for an annual discretionary bonus based on performance.\u003c/p\u003e\n\u003cbr /\u003e",
+"location_raw" : "Gramercy Park and Murray Hill, NY",
+"title" : "Data Science Intern - Summer 2026",
+"product_sku" : "5580648385-Data Science Intern - Summer 2026-Greater New York Mutual Insurance Company-507268",
+"event_action" : "page-view-click-out",
+"event_category" : "ad-details",
+"ad_title" : "Data Science Intern - Summer 2026",
+"company_name" : "Greater New York Mutual Insurance Company",
+"event_name" : "page_view_click_out"
+"show_truncated_desc_adp" : "",
+"aztt" : "eyJhbGciOiJIUzI1NiJ9.eyJjaSI6ImhvSkppV3REOFJHYkdKQ2FmMjBvd2ciLCJpYXQiOjE3Nzc0MjY0NTcsImV4cCI6MTc3ODAzMTI1NywidHMiOiJkZWE0NThjNCIsInR0IjoiYXBpIn0.8qDrc0P4AkNgJ9rb4JBbS0c8qoVr9sL1K1v2HjiBVME",
+"company" : "Greater New York Mutual Insurance Company",
+"serialised" : "%7B%22command%22%3A%5B%7B%22args%22%3A%22jobs%22%2C%22method%22%3A%22add_index%22%2C%22type%22%3A%22%22%7D%2C%7B%22args%22%3A%22%7B%5C%22field%5C%22%3A%5C%22search_category%5C%22%2C%5C%22value%5C%22%3A0%7D%22%2C%22method%22%3A%22add_filter%22%2C%22type%22%3A%22HASH%22%7D%2C%7B%22args%22%3A%22%7B%5C%22form%5C%22%3A%5C%22what_or_c%5C%22%2C%5C%22freetext%5C%22%3A%5C%22Data%20OR%20Science%20OR%20Intern%20OR%20Summer%20OR%202026%5C%22%2C%5C%22mode%5C%22%3A%5C%22standard%5C%22%7D%22%2C%22method%22%3A%22add_freetext%22%2C%22type%22%3A%22HASH%22%7D%2C%7B%22args%22%3A%22%7B%5C%22distance%5C%22%3A%5C%2225%5C%22%2C%5C%22lat%5C%22%3A%5C%2240.738634%5C%22%2C%5C%22lng%5C%22%3A%5C%22-73.982937%5C%22%2C%5C%22location_id%5C%22%3A191501%7D%22%2C%22method%22%3A%22add_anchor%22%2C%22type%22%3A%22HASH%22%7D%5D%7D",
+"acq_where" : "gramercy-park-murray-hill-ny",
+"no_topdoc" : "https://www.adzuna.com/search",
+"full_title" : "Similar jobs to Data Science Intern - Summer 2026"
+title : "Data Science Intern - Summer 2026",
+location : "New York, New York, 10118",
+company : "Greater New York Mutual Insurance Company"
+host_sans_jobs: "https://www.adzuna.com",
+host: "https://www.adzuna.com",
+host_UK: "https://www.adzuna.co.uk",
+st: "//zunastatic-abf.kxcdn.com",
+dyn_cached: "//zunadyn-abf.kxcdn.com/com",
+stats : "//zunastatic-abf.kxcdn.com/js/dist/stats-min-6.0.125-vsn.js",
+var LANG = {"LABEL:CLOSE" : "close",
+"LABEL:ERROR:EMAIL" : "Please enter a valid email address",
+"LABEL:MORE:DETAILS" : "more details",
+"LABEL:ADZUNA:CONNECT" : "Adzuna Connect",
+"LABEL:CURRENCY:SEPARATOR" : ",",
+"JOBS:SEARCH:ERROR" : "Please enter a &quot;what&quot; or a &quot;where&quot; before submitting",
+"JOBS:MODALS:EMAIL:ERROR" : "Please enter a valid email address",
+"JOBS:MODALS:ALERTS:TITLE" : "Create a free alert for the latest%s",
+"JOBS:MODALS:ALERTS:DESCRIPTION" : "Enter your email address and we'll email youwhenever we find new jobs that match your search.",
+"JOBS:MODALS:ALERTS:ADP:DESCRIPTION" : "Leave us your email address and we'll send you similar new jobs",
+"JOBS:MODALS:ALERTS:LABEL" : "Leave us your email address and we'll send you all the new jobs for %s",
+"JOBS:MODALS:ALERTS:PLACEHOLDER" : "your.name@email.com",
+"JOBS:MODALS:ALERTS:SUBMIT" : "Create email alert",
+"JOBS:MODALS:ALERTS:CANCEL" : "No, thanks",
+"JOBS:MODALS:ALERTS:DISCLAIMER" : "You can cancel at any time. We won't send you spam or sell your email address.",
+"JOBS:MODALS:ALERTS:DISCLAIMER:GDPR" : "By creating an email alert, you agree to our %sTerms &amp; Conditions%s and %sPrivacy Notice%s, and Cookie Use. You can cancel at any time.",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION:GDPR:1" : "Enter your email address and we'll email you whenever we find new jobs that match your search.",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION:GDPR:2" : "You can delete or change the frequency by clicking on links in the email.",
+"JOBS:SEARCH:ALERTS:PLACEHOLDER" : "your.email@domain.com",
+"JOBS:MODALS:DUAL:TITLE" : "Make the most of Adzuna to find your perfect job",
+"JOBS:MODALS:DUAL:ALERT:TITLE" : "Create a free alert for the latest %s",
+"JOBS:USER:LOGGING_IN:TO" : "Logging in to",
+"JOBS:USER:LOGGING_OUT" : "Logging you out",
+"JOBS:USER:ERROR:EMAIL" : "Please enter a valid email address:",
+"JOBS:USER:ERROR:CREATE" : "Email address already registered.",
+"JOBS:USER:ERROR:PASSWORD" : "Please enter your password:",
+"JOBS:USER:ERROR:PASSWORD:LENGTH" : "Please ensure your password is at least 6 characters in length",
+"JOBS:USER:ERROR:PASSWORD:MATCH" : "Passwords don't match",
+"JOBS:USER:ERROR:BAD_EMAIL_OR_PASSWORD" : "Wrong email or password. Please try again.",
+"JOBS:USER:ERROR:FORGOT" : "Email address not registered",
+"JOBS:USER:ERROR:TOO_MANY_ATTEMPTS" : "Too many login attempts. Please try again in 5 minutes",
+"JOBS:USER:ERROR:GENERIC" : "Could not log you in at this time. Please try again later",
+"JOBS:USER:LOGGING_IN:SUCCESS" : "Refreshing page...",
+"JOBS:USER:CREATE:PROGRESS" : "Creating your account...",
+"JOBS:NAVBAR:MY_ADZUNA" : "MyAdzuna",
+"JOBS:NAVBAR:ALERTS" : "Alerts",
+"JOBS:NAVBAR:FAVOURITES" : "Favorites",
+"JOBS:NAVBAR:MY_PREF" : "Preferences",
+"JOBS:NAVBAR:POST_AD" : "Employers",
+"JOBS:NAVBAR:MY_ADS" : "Posted jobs",
+"JOBS:NAVBAR:LOGOUT" : "Logout",
+"JOBS:NAVBAR:REGISTER" : "Register",
+"JOBS:SEARCH:AD:EMAIL:SUGGESTION" : "Do you mean %s?",
+"JOBS:USER:LOGIN:FB" : "Login with Facebook",
+"JOBS:USER:LOGIN:GOOGLE" : "Login with Google",
+"JOBS:USER:LABEL:CREATE" : "Create an Adzuna account:",
+"JOBS:USER:LABEL:LOGIN" : "Login with your Adzuna account:",
+"JOBS:USER:EMAIL:PLACEHOLDER" : "Email address",
+"JOBS:USER:PASSWORD:PLACEHOLDER" : "Password",
+"JOBS:USER:CONFIRM_PASSWORD:PLACEHOLDER" : "Confirm password",
+"JOBS:USER:ACTION:LOGIN" : "Login",
+"JOBS:USER:ACTION:FORGOT_PASSWORD" : "Forgot password?",
+"JOBS:USER:ACTION:CREATE" : "Create account",
+"JOBS:USER:ACTION:RESET" : "Reset password",
+"JOBS:USER:ACTION:CANCEL" : "Cancel",
+"JOBS:USER:LOGGING_IN" : "Logging you in",
+"JOBS:USER:PRIVACY" : "By registering with Adzuna you agree to the terms of our %s privacy policy %s.",
+"JOBS:USER:PRIVACY:GDPR" : "By registering with Adzuna your agree to our %sTerms &amp; Conditions%s and %sPrivacy Notice%s, and Cookie Use.",
+"JOBS:USER:FOOTER:LOGIN" : "Have an account? %s Login now %s",
+"JOBS:USER:FOOTER:CREATE" : "No account? %s Create one now %s",
+"JOBS:USER:CREATE:SUCCESS:HEADING" : "Adzuna account created",
+"JOBS:USER:CREATE:SUCCESS:TEXT" : "Thank you, your account has been successfully created.",
+"JOBS:USER:FORGOT:HEADING" : "Forgot password?",
+"JOBS:USER:FORGOT:TEXT" : "Please enter your email below to reset your password:",
+"JOBS:USER:FORGOT:RESULT:HEADING" : "Email sent",
+"JOBS:USER:FORGOT:RESULT:TEXT" : "Please check your email for instructions on how to reset your password.",
+"JOBS:USER:LABEL:CLOSE" : "Close",
+"JOBS:AD_DETAILS:ALERTS:SKIP" : "No thanks, take me to the job",
+"JOBS:AUTH:LOGIN:SLOGAN" : "Create an account, upload your resume and land your dream role.",
+"JOBS:USER:CONTINUE:FB" : "Continue with Facebook",
+"JOBS:USER:CONTINUE:GOOGLE" : "Continue with Google",
+"JOBS:USER:FOOTER:CREATE_NEW" : "Don't have an account?",
+"JOBS:USER:RETURN_TO_AD" : "Return to job advert",
+"JOBS:USER:RETURN_TO_HOMEPAGE" : "Return to homepage",
+"JOBS:USER:ALREADY_REGISTERED" : "Already registered?",
+"JOBS:USER:HEADER:CREATE" : "Create account with email address",
+"JOBS:USER:HEADING:EASY_APPLY:LOGIN" : "Login to Easy Apply.",
+"JOBS:USER:HEADING:EASY_APPLY:CREATE_ACCOUNT" : "Create account to Easy Apply.",
+"JOBS:USER:HEADER:SOC_LOGIN" : "Login with your email address",
+"JOBS:USER:ACTION:CREATE_ACCOUNT" : "Create Account",
+"JOBS:MOBILE:SEARCH:CANCEL" : "Cancel",
+"JOBS:USER:RESET:SUGGEST:ERROR:LENGTH" : "Please ensure your new password is at least 6 characters long.",
+"JOBS:USER:ERROR:MISSING_EMAIL" : "Email required",
+"JOBS:USER:ERROR:MISSING_PASSWORD" : "Password required",
+"JOBS:USER:ERROR:MISSING_PASSWORD_CONFIRM" : "Both password fields required",
+"JOBS:SEARCH:AD:EMAIL" : "Email to friend",
+"JOBS:SEARCH:AD:EMAIL:TITLE" : "Send to a friend",
+"JOBS:SEARCH:AD:EMAIL:YOUR_EMAIL" : "Your email address:",
+"JOBS:SEARCH:AD:EMAIL:FRIENDS_EMAIL" : "Your friends email address:",
+"JOBS:SEARCH:AD:EMAIL:SUBMIT" : "Send email",
+"JOBS:SEARCH:AD:EMAIL:PREVIEW" : "A preview of the email that will be sent:",
+"JOBS:SEARCH:AD:EMAIL:PREVIEW:TEXT" : "Your friend  found this ad on Adzuna.comand thought you would like to check it out:",
+"JOBS:SEARCH:AD:EMAIL:SENDING" : "Sending email...",
+"JOBS:SEARCH:AD:EMAIL:SENT" : "Email sent successfully.",
+"JOBS:SEARCH:AD:EMAIL:ERROR" : "An error has occured with our mail server, your email has NOT been sent.We apologise for the inconvenience.You can email your friend directly, sending this link.",
+"JOBS:SEARCH:ALERTS:HELP:TITLE" : "Be the first to know about the latest",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION" : "Simply enter your email address in the box and we'll email you new jobs that match your search in one handy daily email.You don't have to register or create a password, and you can cancel your alert at any time. We won't send you spam or sell your email address to anyone.",
+"JOBS:SEARCH:ALERTS:CONFIRM:TITLE" : "Adzuna New Jobs Alert created",
+"JOBS:SEARCH:ALERTS:CONFIRM:TEXT" : "Your Adzuna New Jobs alert request for {{TITLE}} has been created and a welcome email has been sent to {{EMAIL}}. You will start to receive Alerts every day we find new ads that match your request.",
+"JOBS:SEARCH:ALERTS:CONFIRM:THIS_SEARCH" : "this search",
+"JOBS:SEARCH:ALERTS:ERROR" : "Sorry, an error has occurred and we can't set up your alert right now. Please try again in a few minutes. If you keep seeing this message, please contact us to let us know.",
+"JOBS:SEARCH:COMPANY:HEADING:WITH_LOC" : "%s jobs in %s",
+"JOBS:AD_DETAILS:LOADING" : "Loading data...",
+"JOBS:AD_DETAILS:CHART_1:PLOTLINE" : "This job",
+"JOBS:AD_DETAILS:CHART_1:TOOLTIP" : "%s live %sare in the %s salary range",
+"JOBS:AD_DETAILS:CHART_2:CAT_AND_LOC" : "%s in %s",
+"JOBS:AD_DETAILS:CHART_2:LOC" : "%s jobs",
+"JOBS:AD_DETAILS:ALERTS:SKIP" : "No thanks, take me to the job",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:HEADING" : "Confirm job deletion",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:TEXT" : "Are you sure you want to delete this job posting?",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:DELETE" : "Delete",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:CANCEL" : "Keep job posting",
+"JOBS:PAD:MODAL:DELETING" : "Deleting job...",
+"JOBS:PAD:MODAL:FAILED_DELETION:HEADING" : "Failed to delete job",
+"JOBS:PAD:MODAL:FAILED_DELETION:TEXT:1" : "Your job posting could not be deleted due to a technical error",
+"JOBS:PAD:MODAL:FAILED_DELETION:TEXT:2" : "Please %s contact us %s to resolve this for you",
+"JOBS:FAVOURITES:ADD" : "Add to favorite jobs",
+"JOBS:FAVOURITES:ADDED" : "Added to favorite jobs",
+"LABEL:CURRENCY:SEPARATOR" : ",",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:1" : "Account created using Google.",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:3" : "As part of the service you've signed up to, Adzuna will now send you relevant jobs to your email.",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:4" : "Your can %sedit your job alerts%s whenever you want in your My Alerts page. You can also delete your alerts there.",
+"JOBS:MODALS:ONETAP:BUTTON:OK" : "OK",
+"JOBS:CONNECT:JOB:SALARY" : "Salary",
+"JOBS:SEARCH:FILTERS:LOCATION" : "Location",
+"JOBS:CONNECT:JOB:COMPANY" : "Company",
+"JOBS:AD_DETAILS:DESCRIPTION" : "Description",
+"JOBS:MODAL:JOB_TITLE" : "Job title",
+"JOBS:RTA:CONFIRMATION:HEADER" : "You have applied to the role of",
+"JOBS:RTA:CONFIRMATION:NEW_INTRO" : "Your application has been successfully delivered.",
+"JOBS:RTA:CONFIRMATION:NEW_MIDDLE" : "We have selected some similar jobs for you, or you can",
+"JOBS:RTA:CONFIRMATION:PERFORM_A_NEW_SEARCH" : "perform a new search",
+"JOBS:AD_DETAILS:OCA:COPY:APPLY:COMPANY" : "You are about to send an application to",
+"JOBS:AD_DETAILS:OCA:COPY:APPLY" : "You are about to send an application",
+"JOBS:AD_DETAILS:OCA:SIMILAR:JOBS:NEW:SEARCH" : "We have selected some similar jobs for you, or perform a new search.",
+"JOBS:AD_DETAILS:OCA:APPLICATION_SUBMITTED" : "Application submitted:",
+"JOBS:AD_DETAILS:INSTANT_APPLY" : "Instant Apply",
+"JOBS:AD_DETAILS:OCA:SUBMIT" : "Send application",
+facebook_app_id : "100425250051678",
+vmcv_landing_path: "/value-my-resume",
+vmcv_app_path: "/value-my-resume",
+};    var after_login = "eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJodHRwczovL3d3dy5hZHp1bmEuY29tL2RldGFpbHMvNTU4MDY0ODM4NT9mcm9tX2xvZ2luPTEiLCJ0aW1lc3RhbXAiOjE3Nzc0MjY0NTd9.vjMnppK0PmHmYO8gvwuIlGfM89iYKVDu1pM1QS5aJ5g";
+var google_conversion_id = 853965973;
+var google_custom_params = window["google_tag_params"];
+var google_remarketing_only = true;
+rtbhTags.push("pr_" + hash + "_offer_5580648385");
+rtbhTags.push("pr_" + hash + "_uid_16571-8944ca5c-436b-11f1-b357-e46c4df63ebc");
+lid = window.localStorage.getItem(key);
+var pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+for (var i = 0; i < 20; i++) lid += pool.charAt(Math.floor(Math.random() * pool.length));
+window.localStorage.setItem(key, lid);
+rtbhTags.push("pr_" + hash + "_lid_" + lid);
+var ifr = document.createElement("iframe"),
+sr = encodeURIComponent(document.referrer ? document.referrer : ""),
+su = encodeURIComponent(document.location.href ? document.location.href : ""),
+ifrSrc = "https://" + prefix + "creativecdn.com/tags?type=iframe",
+tmstmp = encodeURIComponent("" + Date.now());
+for (var i = 0; i < rtbhTags.length; i++) {
+ifrSrc += "&id=" + encodeURIComponent(rtbhTags[i]);
+ifrSrc += "&su=" + su + "&sr=" + sr + "&ts=" + tmstmp;
+ifr.setAttribute("src", ifrSrc);
+ifr.setAttribute("width", "1");
+ifr.setAttribute("height", "1");
+ifr.setAttribute("scrolling", "no");
+ifr.setAttribute("frameBorder", "0");
+ifr.setAttribute("style", "display:none");
+ifr.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+document.body.appendChild(ifr);
+window.addEventListener("DOMContentLoaded", function() {
+document.body.appendChild(ifr);Conversational AI &amp; Agentic Support Automation Intern, Salesforce Job in Chelsea and Clinton, NY
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-T4VKFS85');
+window.dataLayer = window.dataLayer || [];
+window.addEventListener("load", function(e) {    setTimeout(function() {
+var tokenData = "eyJhbGciOiJIUzI1NiJ9.eyJhZF9pZCI6IjU2OTM5ODUyNDgiLCJzb3VyY2VfaWQiOjE4NDY2MCwiYWdlbnQiOiJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTE1LjAuMC4wIFNhZmFyaS81MzcuMzYiLCJjbGlja19pZCI6IktOSjhwV3REOFJHc3RxMUR2ODVpMFEiLCJpc19yZWNqb2JzIjowLCJjb250ZXh0Ijoiam9ic19VUyIsImRlZHVwZWQiOiIiLCJlcG9jaHRpbWUiOjE3Nzc0MjY1MDQsIm5vdGlmX2lkIjpudWxsLCJzZSI6bnVsbCwidHlwZSI6ImRldGFpbHMiLCJpcCI6IjI2MDE6ODU6Yzc4MDo2MDQ2OjI5NGI6ZDI0NDo0ZjNmOjdiZTIiLCJkY2lkIjoiYTU3MTgwMWMtNDM2Yi0xMWYxLTg5NTctYzhlNTBiZmQ4MDIzIiwiZGVsZXRlZCI6IiJ9.APYposr5JRMqOOqqd62o6Ig9Ej58eY8zuKPtEwAB820";
+var urlData   = "https://www.adzuna.com/_count";
+if (window.FormData && navigator.sendBeacon) {
+formData.append("token", tokenData);
+if (navigator.sendBeacon(urlData, formData)) {
+$.ajax({ type: 'POST', url: urlData, data: { token: tokenData } });
+Conversational AI & Agentic Support Automation Intern, Salesforce
+Conversational AI &amp; Agentic Support Automation Intern, SalesforceCompanyAt Actian we believe data should be a competitive advantage. Through the deployment of data technology, underpinned by a relentless and trusted service commitment, we help business critical systems transact and integrate at their very best. As a trusted leader in data management, integration, and analytics, our mission is to helping businesses unlock the full potential of their data to drive better decision-making and innovation wherever it resides — in the cloud, on-premises, or hybrid environments.With a global team of experts and a culture of innovation, we’re dedicated to helping our customers solve their most complex data challenges.Internship OverviewWe are looking for interns to join us for our 2026 Summer Internship Program! This 12-week program is set to begin June 8th, so if you are looking for an incredible opportunity to partner with the best and brightest minds in the industry, apply today. This program has been designed with our interns in mind and includes structured learning plans, a dedicated buddy, and a focused capstone project that you will have the opportunity to present in our Internship Showcase!What It’s Like Interning with Us!Intern Events— just because the internship is remote, doesn’t mean we don’t have time for fun! Regular intern events will be hosted throughout your 12-weeks with us!Time with Executives— Interns all get a chance to connect with our executive team through panel discussions, 1:1s, Q&amp;A meetings, and eventsWorkshops — Interns participate in workshops geared towards helping new professionalsOpportunity to travel – we will fly you out for onsite orientation at our Austin, Texas office location!Position OverviewThis Conversational AI &amp; Agentic Support Automation Intern, Salesforce focuses on enhancing customer support infrastructure using AI within Salesforce Service Cloud and Salesforce Experience Cloud. The intern will implement Agentforce as an intelligence layer behind the existing chatbot, which already leverages generative AI from Coveo, to enable more advanced, action-oriented customer support capabilities. Customers will be able to manage cases directly within chat, including viewing cases, checking status, escalating cases (if needed) and adding comments. Develop AI-driven capabilities such as case summarization, suggested replies, and knowledge article recommendations, while creating dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts. The goal is to improve efficiency, reduce manual effort, and deliver a more intuitive support experience.Capstone OverviewThe capstone project involves integrating Agentforce into the Customer Community to transform the existing chatbot into a more intelligent support system. Instead of replacing the chatbot, Agentforce will empower it by enabling customers to interact using natural language and perform real actions such as viewing cases, checking updates, escalating cases and posting comments. The project will also introduce AI-driven capabilities like case summarization, suggested replies, and knowledge recommendations for support engineers and customers. This will demonstrate how AI can evolve customer support from simple Q&amp;A into a fully interactive, self-service experience.Responsibilities: Integrate Agentforce with the existing Coveo chatbot as an intelligence layer (conversational AI) (without replacing it).Build AI support agents including Case Viewer, Case Status, Escalate Case and Case Comment agents to enable end-to-end case management in chat.Connect agents to Salesforce using Flows/APIs to retrieve cases, fetch updates, and post comments.Develop AI features such as case summarization, suggested replies, and recommended knowledge articles.Create dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts.Lead the capstone project to design and deliver an AI-powered support experience showcasing real business impact.Explore indexing video transcripts so academy videos are surfaced based on their actual content, not just course descriptions.Nice to Haves:Exposure to AI/ML concepts such as generative AI, chatbots, or natural language processing.Strong communication, analytical and problem-solving skills with an interest in improving customer experience through technology.Strong understanding of Salesforce (Service Cloud/Experience Cloud) or CRM platforms; familiarity with Coveo or search/AI tools is a plus.Pursuing a degree in Computer Science, Information Systems, Data Science, or a related field.Experience or coursework in APIs, data integration, or automation (e.g., REST APIs, workflows, or similar concepts).Requirements:Must be actively enrolled in a college degree programMust be legally authorized to work in the United StatesWe value diversity at our company. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, or any other applicable legally protected characteristics in the location in which the candidate is applying.$20 - $30 an hourCompensation details: 20-30 Hourly WagePI5c98b1ed1d47-26172-40204116
+The number of jobs in each salary range for all:
+By creating an alert, you agree to our T&amp;Cs and Privacy Notice, and Cookie Use.
+AI Lead - Agentic & Conversational AI
+Conversational AI Operations Specialist
+"@context" : "https://schema.org",
+"item" : "https://www.adzuna.com",
+"item" : "https://www.adzuna.com/chelsea-clinton-ny/it-jobs"
+"name" : "Conversational AI \u0026 Agentic Support Automation Intern, Salesforce",
+"validThrough" : "2026-05-05T02:10:19",
+"@context" : "http://schema.org/",
+"datePosted" : "2026-04-08T00:00:00",
+"addressLocality" : "Chelsea and Clinton, NY",
+"description" : "\u003cbr /\u003eConversational AI \u0026amp; Agentic Support Automation Intern, Salesforce\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003e\u003cb\u003eCompany\u003c/b\u003e\u003c/p\u003e\u003cp\u003eAt Actian we believe data should be a competitive advantage. Through the deployment of data technology, underpinned by a relentless and trusted service commitment, we help business critical systems transact and integrate at their very best. As a trusted leader in data management, integration, and analytics, our mission is to helping businesses unlock the full potential of their data to drive better decision-making and innovation wherever it resides — in the cloud, on-premises, or hybrid environments.\u003c/p\u003e\u003cp\u003eWith a global team of experts and a culture of innovation, we’re dedicated to helping our customers solve their most complex data challenges.\u003c/p\u003e\u003cp\u003e\u003cb\u003eInternship Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eWe are looking for interns to join us for our 2026 Summer Internship Program! This 12-week program is set to begin\u003cb\u003e June 8th\u003c/b\u003e, so if you are looking for an incredible opportunity to partner with the best and brightest minds in the industry, apply today. This program has been designed with our interns in mind and includes structured learning plans, a dedicated buddy, and a focused capstone project that you will have the opportunity to present in our Internship Showcase!\u003c/p\u003e\u003cp\u003e\u003cb\u003eWhat It’s Like Interning with Us!\u003c/b\u003e\u003c/p\u003e\u003cul\u003e\u003cli\u003eIntern Events— just because the internship is remote, doesn’t mean we don’t have time for fun! Regular intern events will be hosted throughout your 12-weeks with us!\u003c/li\u003e\u003cli\u003eTime with Executives— Interns all get a chance to connect with our executive team through panel discussions, 1:1s, Q\u0026amp;A meetings, and events\u003c/li\u003e\u003cli\u003eWorkshops — Interns participate in workshops geared towards helping new professionals\u003c/li\u003e\u003cli\u003eOpportunity to travel – we will fly you out for onsite orientation at our Austin, Texas office location!\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003cb\u003ePosition Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eThis \u003cb\u003eConversational AI \u0026amp; Agentic Support Automation Intern, Salesforce\u003c/b\u003e focuses on enhancing customer support infrastructure using AI within Salesforce Service Cloud and Salesforce Experience Cloud. The intern will implement Agentforce as an intelligence layer behind the existing chatbot, which already leverages generative AI from Coveo, to enable more advanced, action-oriented customer support capabilities. Customers will be able to manage cases directly within chat, including viewing cases, checking status, escalating cases (if needed) and adding comments. Develop AI-driven capabilities such as case summarization, suggested replies, and knowledge article recommendations, while creating dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts. The goal is to improve efficiency, reduce manual effort, and deliver a more intuitive support experience.\u003c/p\u003e\u003cp\u003e\u003cb\u003eCapstone Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eThe capstone project involves integrating Agentforce into the Customer Community to transform the existing chatbot into a more intelligent support system. Instead of replacing the chatbot, Agentforce will empower it by enabling customers to interact using natural language and perform real actions such as viewing cases, checking updates, escalating cases and posting comments. The project will also introduce AI-driven capabilities like case summarization, suggested replies, and knowledge recommendations for support engineers and customers. This will demonstrate how AI can evolve customer support from simple Q\u0026amp;A into a fully interactive, self-service experience.\u003c/p\u003eResponsibilities: \u003cul\u003e\u003cli\u003eIntegrate Agentforce with the existing Coveo chatbot as an intelligence layer (conversational AI) (without replacing it).\u003c/li\u003e\u003cli\u003eBuild AI support agents including \u003cb\u003eCase Viewer, Case Status, Escalate Case and Case Comment agents \u003c/b\u003eto enable end-to-end case management in chat.\u003c/li\u003e\u003cli\u003eConnect agents to Salesforce using Flows/APIs to retrieve cases, fetch updates, and post comments.\u003c/li\u003e\u003cli\u003eDevelop AI features such as \u003cb\u003ecase summarization, suggested replies, and recommended knowledge articles\u003c/b\u003e.\u003c/li\u003e\u003cli\u003eCreate dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts.\u003cbr /\u003e\u003cb\u003eLead the capstone project \u003c/b\u003eto design and deliver an AI-powered support experience showcasing real business impact.\u003c/li\u003e\u003cli\u003eExplore indexing video transcripts so academy videos are surfaced based on their actual content, not just course descriptions.\u003c/li\u003e\u003c/ul\u003eNice to Haves:\u003cul\u003e\u003cli\u003eExposure to AI/ML concepts such as generative AI, chatbots, or natural language processing.\u003c/li\u003e\u003cli\u003eStrong communication, analytical and problem-solving skills with an interest in improving customer experience through technology.\u003c/li\u003e\u003cli\u003eStrong understanding of Salesforce (Service Cloud/Experience Cloud) or CRM platforms; familiarity with Coveo or search/AI tools is a plus.\u003c/li\u003e\u003cli\u003ePursuing a degree in Computer Science, Information Systems, Data Science, or a related field.\u003c/li\u003e\u003cli\u003eExperience or coursework in APIs, data integration, or automation (e.g., REST APIs, workflows, or similar concepts).\u003c/li\u003e\u003c/ul\u003eRequirements:\u003cul\u003e\u003cli\u003eMust be actively enrolled in a college degree program\u003c/li\u003e\u003cli\u003eMust be legally authorized to work in the United States\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003cem\u003eWe value diversity at our company. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, or any other applicable legally protected characteristics in the location in which the candidate is applying.\u003c/em\u003e\u003c/p\u003e\u003cbr /\u003e$20 - $30 an hour\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003e\u003cstrong\u003eCompensation details:\u003c/strong\u003e 20-30 Hourly Wage\u003c/p\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003ePI5c98b1ed1d47-26172-40204116\u003c/p\u003e",
+"title" : "Conversational AI \u0026amp; Agentic Support Automation Intern, Salesforce"
+By creating an alert, you agree to our T&amp;Cs and Privacy Notice, and Cookie Use.
+"aztt" : "eyJhbGciOiJIUzI1NiJ9.eyJ0cyI6ImRlYTQ1OGM0IiwidHQiOiJhcGkiLCJjaSI6IktOSjhwV3REOFJHc3RxMUR2ODVpMFEiLCJpYXQiOjE3Nzc0MjY1MDQsImV4cCI6MTc3ODAzMTMwNH0.qcbyauXyDsPkcgT47NkkoRSqa7eXIHjmnp_YgLm7v6I",
+"event_name" : "page_view_click_out",
+"company_name" : "Actian Corporation",
+"ad_title" : "Conversational AI \u0026 Agentic Support Automation Intern, Salesforce"
+"company" : "Actian Corporation",
+"event_action" : "page-view-click-out",
+"product_sku" : "5693985248-Conversational AI \u0026 Agentic Support Automation Intern, Salesforce-Actian Corporation-184660",
+"event_category" : "ad-details",
+"full_title" : "Similar jobs to Conversational AI \u0026 Agentic Support Automation Intern, Salesforce",
+"serialised" : "%7B%22command%22%3A%5B%7B%22args%22%3A%22jobs%22%2C%22method%22%3A%22add_index%22%2C%22type%22%3A%22%22%7D%2C%7B%22args%22%3A%22%7B%5C%22field%5C%22%3A%5C%22search_category%5C%22%2C%5C%22value%5C%22%3A0%7D%22%2C%22method%22%3A%22add_filter%22%2C%22type%22%3A%22HASH%22%7D%2C%7B%22args%22%3A%22%7B%5C%22form%5C%22%3A%5C%22what_or_c%5C%22%2C%5C%22freetext%5C%22%3A%5C%22Conversational%20OR%20AI%20OR%20Agentic%20OR%20Support%20OR%20Automation%20OR%20Intern%20OR%20Salesforce%5C%22%2C%5C%22mode%5C%22%3A%5C%22standard%5C%22%7D%22%2C%22method%22%3A%22add_freetext%22%2C%22type%22%3A%22HASH%22%7D%2C%7B%22args%22%3A%22%7B%5C%22distance%5C%22%3A%5C%2225%5C%22%2C%5C%22lat%5C%22%3A%5C%2240.750800%5C%22%2C%5C%22lng%5C%22%3A%5C%22-73.996122%5C%22%2C%5C%22location_id%5C%22%3A191492%7D%22%2C%22method%22%3A%22add_anchor%22%2C%22type%22%3A%22HASH%22%7D%5D%7D",
+"acq_where" : "chelsea-clinton-ny",
+"no_topdoc" : "https://www.adzuna.com/search"
+"description" : "\u003cbr /\u003eConversational AI \u0026amp; Agentic Support Automation Intern, Salesforce\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003e\u003cb\u003eCompany\u003c/b\u003e\u003c/p\u003e\u003cp\u003eAt Actian we believe data should be a competitive advantage. Through the deployment of data technology, underpinned by a relentless and trusted service commitment, we help business critical systems transact and integrate at their very best. As a trusted leader in data management, integration, and analytics, our mission is to helping businesses unlock the full potential of their data to drive better decision-making and innovation wherever it resides — in the cloud, on-premises, or hybrid environments.\u003c/p\u003e\u003cp\u003eWith a global team of experts and a culture of innovation, we’re dedicated to helping our customers solve their most complex data challenges.\u003c/p\u003e\u003cp\u003e\u003cb\u003eInternship Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eWe are looking for interns to join us for our 2026 Summer Internship Program! This 12-week program is set to begin\u003cb\u003e June 8th\u003c/b\u003e, so if you are looking for an incredible opportunity to partner with the best and brightest minds in the industry, apply today. This program has been designed with our interns in mind and includes structured learning plans, a dedicated buddy, and a focused capstone project that you will have the opportunity to present in our Internship Showcase!\u003c/p\u003e\u003cp\u003e\u003cb\u003eWhat It’s Like Interning with Us!\u003c/b\u003e\u003c/p\u003e\u003cul\u003e\u003cli\u003eIntern Events— just because the internship is remote, doesn’t mean we don’t have time for fun! Regular intern events will be hosted throughout your 12-weeks with us!\u003c/li\u003e\u003cli\u003eTime with Executives— Interns all get a chance to connect with our executive team through panel discussions, 1:1s, Q\u0026amp;A meetings, and events\u003c/li\u003e\u003cli\u003eWorkshops — Interns participate in workshops geared towards helping new professionals\u003c/li\u003e\u003cli\u003eOpportunity to travel – we will fly you out for onsite orientation at our Austin, Texas office location!\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003cb\u003ePosition Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eThis \u003cb\u003eConversational AI \u0026amp; Agentic Support Automation Intern, Salesforce\u003c/b\u003e focuses on enhancing customer support infrastructure using AI within Salesforce Service Cloud and Salesforce Experience Cloud. The intern will implement Agentforce as an intelligence layer behind the existing chatbot, which already leverages generative AI from Coveo, to enable more advanced, action-oriented customer support capabilities. Customers will be able to manage cases directly within chat, including viewing cases, checking status, escalating cases (if needed) and adding comments. Develop AI-driven capabilities such as case summarization, suggested replies, and knowledge article recommendations, while creating dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts. The goal is to improve efficiency, reduce manual effort, and deliver a more intuitive support experience.\u003c/p\u003e\u003cp\u003e\u003cb\u003eCapstone Overview\u003c/b\u003e\u003c/p\u003e\u003cp\u003eThe capstone project involves integrating Agentforce into the Customer Community to transform the existing chatbot into a more intelligent support system. Instead of replacing the chatbot, Agentforce will empower it by enabling customers to interact using natural language and perform real actions such as viewing cases, checking updates, escalating cases and posting comments. The project will also introduce AI-driven capabilities like case summarization, suggested replies, and knowledge recommendations for support engineers and customers. This will demonstrate how AI can evolve customer support from simple Q\u0026amp;A into a fully interactive, self-service experience.\u003c/p\u003eResponsibilities: \u003cul\u003e\u003cli\u003eIntegrate Agentforce with the existing Coveo chatbot as an intelligence layer (conversational AI) (without replacing it).\u003c/li\u003e\u003cli\u003eBuild AI support agents including \u003cb\u003eCase Viewer, Case Status, Escalate Case and Case Comment agents \u003c/b\u003eto enable end-to-end case management in chat.\u003c/li\u003e\u003cli\u003eConnect agents to Salesforce using Flows/APIs to retrieve cases, fetch updates, and post comments.\u003c/li\u003e\u003cli\u003eDevelop AI features such as \u003cb\u003ecase summarization, suggested replies, and recommended knowledge articles\u003c/b\u003e.\u003c/li\u003e\u003cli\u003eCreate dashboards to analyze case trends, identify recurring issues, and flag high-risk accounts.\u003cbr /\u003e\u003cb\u003eLead the capstone project \u003c/b\u003eto design and deliver an AI-powered support experience showcasing real business impact.\u003c/li\u003e\u003cli\u003eExplore indexing video transcripts so academy videos are surfaced based on their actual content, not just course descriptions.\u003c/li\u003e\u003c/ul\u003eNice to Haves:\u003cul\u003e\u003cli\u003eExposure to AI/ML concepts such as generative AI, chatbots, or natural language processing.\u003c/li\u003e\u003cli\u003eStrong communication, analytical and problem-solving skills with an interest in improving customer experience through technology.\u003c/li\u003e\u003cli\u003eStrong understanding of Salesforce (Service Cloud/Experience Cloud) or CRM platforms; familiarity with Coveo or search/AI tools is a plus.\u003c/li\u003e\u003cli\u003ePursuing a degree in Computer Science, Information Systems, Data Science, or a related field.\u003c/li\u003e\u003cli\u003eExperience or coursework in APIs, data integration, or automation (e.g., REST APIs, workflows, or similar concepts).\u003c/li\u003e\u003c/ul\u003eRequirements:\u003cul\u003e\u003cli\u003eMust be actively enrolled in a college degree program\u003c/li\u003e\u003cli\u003eMust be legally authorized to work in the United States\u003c/li\u003e\u003c/ul\u003e\u003cp\u003e\u003cem\u003eWe value diversity at our company. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, or any other applicable legally protected characteristics in the location in which the candidate is applying.\u003c/em\u003e\u003c/p\u003e\u003cbr /\u003e$20 - $30 an hour\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003e\u003cstrong\u003eCompensation details:\u003c/strong\u003e 20-30 Hourly Wage\u003c/p\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cbr /\u003e\u003cp\u003ePI5c98b1ed1d47-26172-40204116\u003c/p\u003e",
+"title" : "Conversational AI \u0026 Agentic Support Automation Intern, Salesforce",
+"show_truncated_desc_adp" : "",
+"location_raw" : "Chelsea and Clinton, NY"
+title : "Conversational AI & Agentic Support Automation Intern, Salesforce",
+location : "New York, New York,10001",
+host_sans_jobs: "https://www.adzuna.com",
+host: "https://www.adzuna.com",
+host_UK: "https://www.adzuna.co.uk",
+st: "//zunastatic-abf.kxcdn.com",
+dyn_cached: "//zunadyn-abf.kxcdn.com/com",
+stats : "//zunastatic-abf.kxcdn.com/js/dist/stats-min-6.0.125-vsn.js",
+var LANG = {"LABEL:CLOSE" : "close",
+"LABEL:ERROR:EMAIL" : "Please enter a valid email address",
+"LABEL:MORE:DETAILS" : "more details",
+"LABEL:ADZUNA:CONNECT" : "Adzuna Connect",
+"LABEL:CURRENCY:SEPARATOR" : ",",
+"JOBS:SEARCH:ERROR" : "Please enter a &quot;what&quot; or a &quot;where&quot; before submitting",
+"JOBS:MODALS:EMAIL:ERROR" : "Please enter a valid email address",
+"JOBS:MODALS:ALERTS:TITLE" : "Create a free alert for the latest%s",
+"JOBS:MODALS:ALERTS:DESCRIPTION" : "Enter your email address and we'll email youwhenever we find new jobs that match your search.",
+"JOBS:MODALS:ALERTS:ADP:DESCRIPTION" : "Leave us your email address and we'll send you similar new jobs",
+"JOBS:MODALS:ALERTS:LABEL" : "Leave us your email address and we'll send you all the new jobs for %s",
+"JOBS:MODALS:ALERTS:PLACEHOLDER" : "your.name@email.com",
+"JOBS:MODALS:ALERTS:SUBMIT" : "Create email alert",
+"JOBS:MODALS:ALERTS:CANCEL" : "No, thanks",
+"JOBS:MODALS:ALERTS:DISCLAIMER" : "You can cancel at any time. We won't send you spam or sell your email address.",
+"JOBS:MODALS:ALERTS:DISCLAIMER:GDPR" : "By creating an email alert, you agree to our %sTerms &amp; Conditions%s and %sPrivacy Notice%s, and Cookie Use. You can cancel at any time.",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION:GDPR:1" : "Enter your email address and we'll email you whenever we find new jobs that match your search.",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION:GDPR:2" : "You can delete or change the frequency by clicking on links in the email.",
+"JOBS:SEARCH:ALERTS:PLACEHOLDER" : "your.email@domain.com",
+"JOBS:MODALS:DUAL:TITLE" : "Make the most of Adzuna to find your perfect job",
+"JOBS:MODALS:DUAL:ALERT:TITLE" : "Create a free alert for the latest %s",
+"JOBS:USER:LOGGING_IN:TO" : "Logging in to",
+"JOBS:USER:LOGGING_OUT" : "Logging you out",
+"JOBS:USER:ERROR:EMAIL" : "Please enter a valid email address:",
+"JOBS:USER:ERROR:CREATE" : "Email address already registered.",
+"JOBS:USER:ERROR:PASSWORD" : "Please enter your password:",
+"JOBS:USER:ERROR:PASSWORD:LENGTH" : "Please ensure your password is at least 6 characters in length",
+"JOBS:USER:ERROR:PASSWORD:MATCH" : "Passwords don't match",
+"JOBS:USER:ERROR:BAD_EMAIL_OR_PASSWORD" : "Wrong email or password. Please try again.",
+"JOBS:USER:ERROR:FORGOT" : "Email address not registered",
+"JOBS:USER:ERROR:TOO_MANY_ATTEMPTS" : "Too many login attempts. Please try again in 5 minutes",
+"JOBS:USER:ERROR:GENERIC" : "Could not log you in at this time. Please try again later",
+"JOBS:USER:LOGGING_IN:SUCCESS" : "Refreshing page...",
+"JOBS:USER:CREATE:PROGRESS" : "Creating your account...",
+"JOBS:NAVBAR:MY_ADZUNA" : "MyAdzuna",
+"JOBS:NAVBAR:ALERTS" : "Alerts",
+"JOBS:NAVBAR:FAVOURITES" : "Favorites",
+"JOBS:NAVBAR:MY_PREF" : "Preferences",
+"JOBS:NAVBAR:POST_AD" : "Employers",
+"JOBS:NAVBAR:MY_ADS" : "Posted jobs",
+"JOBS:NAVBAR:LOGOUT" : "Logout",
+"JOBS:NAVBAR:REGISTER" : "Register",
+"JOBS:SEARCH:AD:EMAIL:SUGGESTION" : "Do you mean %s?",
+"JOBS:USER:LOGIN:FB" : "Login with Facebook",
+"JOBS:USER:LOGIN:GOOGLE" : "Login with Google",
+"JOBS:USER:LABEL:CREATE" : "Create an Adzuna account:",
+"JOBS:USER:LABEL:LOGIN" : "Login with your Adzuna account:",
+"JOBS:USER:EMAIL:PLACEHOLDER" : "Email address",
+"JOBS:USER:PASSWORD:PLACEHOLDER" : "Password",
+"JOBS:USER:CONFIRM_PASSWORD:PLACEHOLDER" : "Confirm password",
+"JOBS:USER:ACTION:LOGIN" : "Login",
+"JOBS:USER:ACTION:FORGOT_PASSWORD" : "Forgot password?",
+"JOBS:USER:ACTION:CREATE" : "Create account",
+"JOBS:USER:ACTION:RESET" : "Reset password",
+"JOBS:USER:ACTION:CANCEL" : "Cancel",
+"JOBS:USER:LOGGING_IN" : "Logging you in",
+"JOBS:USER:PRIVACY" : "By registering with Adzuna you agree to the terms of our %s privacy policy %s.",
+"JOBS:USER:PRIVACY:GDPR" : "By registering with Adzuna your agree to our %sTerms &amp; Conditions%s and %sPrivacy Notice%s, and Cookie Use.",
+"JOBS:USER:FOOTER:LOGIN" : "Have an account? %s Login now %s",
+"JOBS:USER:FOOTER:CREATE" : "No account? %s Create one now %s",
+"JOBS:USER:CREATE:SUCCESS:HEADING" : "Adzuna account created",
+"JOBS:USER:CREATE:SUCCESS:TEXT" : "Thank you, your account has been successfully created.",
+"JOBS:USER:FORGOT:HEADING" : "Forgot password?",
+"JOBS:USER:FORGOT:TEXT" : "Please enter your email below to reset your password:",
+"JOBS:USER:FORGOT:RESULT:HEADING" : "Email sent",
+"JOBS:USER:FORGOT:RESULT:TEXT" : "Please check your email for instructions on how to reset your password.",
+"JOBS:USER:LABEL:CLOSE" : "Close",
+"JOBS:AD_DETAILS:ALERTS:SKIP" : "No thanks, take me to the job",
+"JOBS:AUTH:LOGIN:SLOGAN" : "Create an account, upload your resume and land your dream role.",
+"JOBS:USER:CONTINUE:FB" : "Continue with Facebook",
+"JOBS:USER:CONTINUE:GOOGLE" : "Continue with Google",
+"JOBS:USER:FOOTER:CREATE_NEW" : "Don't have an account?",
+"JOBS:USER:RETURN_TO_AD" : "Return to job advert",
+"JOBS:USER:RETURN_TO_HOMEPAGE" : "Return to homepage",
+"JOBS:USER:ALREADY_REGISTERED" : "Already registered?",
+"JOBS:USER:HEADER:CREATE" : "Create account with email address",
+"JOBS:USER:HEADING:EASY_APPLY:LOGIN" : "Login to Easy Apply.",
+"JOBS:USER:HEADING:EASY_APPLY:CREATE_ACCOUNT" : "Create account to Easy Apply.",
+"JOBS:USER:HEADER:SOC_LOGIN" : "Login with your email address",
+"JOBS:USER:ACTION:CREATE_ACCOUNT" : "Create Account",
+"JOBS:MOBILE:SEARCH:CANCEL" : "Cancel",
+"JOBS:USER:RESET:SUGGEST:ERROR:LENGTH" : "Please ensure your new password is at least 6 characters long.",
+"JOBS:USER:ERROR:MISSING_EMAIL" : "Email required",
+"JOBS:USER:ERROR:MISSING_PASSWORD" : "Password required",
+"JOBS:USER:ERROR:MISSING_PASSWORD_CONFIRM" : "Both password fields required",
+"JOBS:SEARCH:AD:EMAIL" : "Email to friend",
+"JOBS:SEARCH:AD:EMAIL:TITLE" : "Send to a friend",
+"JOBS:SEARCH:AD:EMAIL:YOUR_EMAIL" : "Your email address:",
+"JOBS:SEARCH:AD:EMAIL:FRIENDS_EMAIL" : "Your friends email address:",
+"JOBS:SEARCH:AD:EMAIL:SUBMIT" : "Send email",
+"JOBS:SEARCH:AD:EMAIL:PREVIEW" : "A preview of the email that will be sent:",
+"JOBS:SEARCH:AD:EMAIL:PREVIEW:TEXT" : "Your friend  found this ad on Adzuna.comand thought you would like to check it out:",
+"JOBS:SEARCH:AD:EMAIL:SENDING" : "Sending email...",
+"JOBS:SEARCH:AD:EMAIL:SENT" : "Email sent successfully.",
+"JOBS:SEARCH:AD:EMAIL:ERROR" : "An error has occured with our mail server, your email has NOT been sent.We apologise for the inconvenience.You can email your friend directly, sending this link.",
+"JOBS:SEARCH:ALERTS:HELP:TITLE" : "Be the first to know about the latest",
+"JOBS:SEARCH:ALERTS:HELP:DESCRIPTION" : "Simply enter your email address in the box and we'll email you new jobs that match your search in one handy daily email.You don't have to register or create a password, and you can cancel your alert at any time. We won't send you spam or sell your email address to anyone.",
+"JOBS:SEARCH:ALERTS:CONFIRM:TITLE" : "Adzuna New Jobs Alert created",
+"JOBS:SEARCH:ALERTS:CONFIRM:TEXT" : "Your Adzuna New Jobs alert request for {{TITLE}} has been created and a welcome email has been sent to {{EMAIL}}. You will start to receive Alerts every day we find new ads that match your request.",
+"JOBS:SEARCH:ALERTS:CONFIRM:THIS_SEARCH" : "this search",
+"JOBS:SEARCH:ALERTS:ERROR" : "Sorry, an error has occurred and we can't set up your alert right now. Please try again in a few minutes. If you keep seeing this message, please contact us to let us know.",
+"JOBS:SEARCH:COMPANY:HEADING:WITH_LOC" : "%s jobs in %s",
+"JOBS:AD_DETAILS:LOADING" : "Loading data...",
+"JOBS:AD_DETAILS:CHART_1:PLOTLINE" : "This job",
+"JOBS:AD_DETAILS:CHART_1:TOOLTIP" : "%s live %sare in the %s salary range",
+"JOBS:AD_DETAILS:CHART_2:CAT_AND_LOC" : "%s in %s",
+"JOBS:AD_DETAILS:CHART_2:LOC" : "%s jobs",
+"JOBS:AD_DETAILS:ALERTS:SKIP" : "No thanks, take me to the job",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:HEADING" : "Confirm job deletion",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:TEXT" : "Are you sure you want to delete this job posting?",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:DELETE" : "Delete",
+"JOBS:PAD:MODAL:CONFIRM_DELETION:CANCEL" : "Keep job posting",
+"JOBS:PAD:MODAL:DELETING" : "Deleting job...",
+"JOBS:PAD:MODAL:FAILED_DELETION:HEADING" : "Failed to delete job",
+"JOBS:PAD:MODAL:FAILED_DELETION:TEXT:1" : "Your job posting could not be deleted due to a technical error",
+"JOBS:PAD:MODAL:FAILED_DELETION:TEXT:2" : "Please %s contact us %s to resolve this for you",
+"JOBS:FAVOURITES:ADD" : "Add to favorite jobs",
+"JOBS:FAVOURITES:ADDED" : "Added to favorite jobs",
+"LABEL:CURRENCY:SEPARATOR" : ",",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:1" : "Account created using Google.",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:3" : "As part of the service you've signed up to, Adzuna will now send you relevant jobs to your email.",
+"JOBS:MODALS:ONETAP:CONFIRM:TEXT:4" : "Your can %sedit your job alerts%s whenever you want in your My Alerts page. You can also delete your alerts there.",
+"JOBS:MODALS:ONETAP:BUTTON:OK" : "OK",
+"JOBS:CONNECT:JOB:SALARY" : "Salary",
+"JOBS:SEARCH:FILTERS:LOCATION" : "Location",
+"JOBS:CONNECT:JOB:COMPANY" : "Company",
+"JOBS:AD_DETAILS:DESCRIPTION" : "Description",
+"JOBS:MODAL:JOB_TITLE" : "Job title",
+"JOBS:RTA:CONFIRMATION:HEADER" : "You have applied to the role of",
+"JOBS:RTA:CONFIRMATION:NEW_INTRO" : "Your application has been successfully delivered.",
+"JOBS:RTA:CONFIRMATION:NEW_MIDDLE" : "We have selected some similar jobs for you, or you can",
+"JOBS:RTA:CONFIRMATION:PERFORM_A_NEW_SEARCH" : "perform a new search",
+"JOBS:AD_DETAILS:OCA:COPY:APPLY:COMPANY" : "You are about to send an application to",
+"JOBS:AD_DETAILS:OCA:COPY:APPLY" : "You are about to send an application",
+"JOBS:AD_DETAILS:OCA:SIMILAR:JOBS:NEW:SEARCH" : "We have selected some similar jobs for you, or perform a new search.",
+"JOBS:AD_DETAILS:OCA:APPLICATION_SUBMITTED" : "Application submitted:",
+"JOBS:AD_DETAILS:INSTANT_APPLY" : "Instant Apply",
+"JOBS:AD_DETAILS:OCA:SUBMIT" : "Send application",
+facebook_app_id : "100425250051678",
+vmcv_landing_path: "/value-my-resume",
+vmcv_app_path: "/value-my-resume",
+};    var after_login = "eyJhbGciOiJIUzI1NiJ9.eyJ0aW1lc3RhbXAiOjE3Nzc0MjY1MDQsInVybCI6Imh0dHBzOi8vd3d3LmFkenVuYS5jb20vZGV0YWlscy81NjkzOTg1MjQ4P2Zyb21fbG9naW49MSJ9.E1xetn_N0i0uRTnyxfC5a4aMqsCJLmxUuD1IgeiUP9g";
+"job_pagetype" : "offerdetail",
+var google_conversion_id = 853965973;
+var google_custom_params = window["google_tag_params"];
+var google_remarketing_only = true;
+rtbhTags.push("pr_" + hash + "_offer_5693985248");
+rtbhTags.push("pr_" + hash + "_uid_169478-a570f0e8-436b-11f1-bde2-eed77b433bc6");
+lid = window.localStorage.getItem(key);
+var pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+for (var i = 0; i < 20; i++) lid += pool.charAt(Math.floor(Math.random() * pool.length));
+window.localStorage.setItem(key, lid);
+rtbhTags.push("pr_" + hash + "_lid_" + lid);
+var ifr = document.createElement("iframe"),
+sr = encodeURIComponent(document.referrer ? document.referrer : ""),
+su = encodeURIComponent(document.location.href ? document.location.href : ""),
+ifrSrc = "https://" + prefix + "creativecdn.com/tags?type=iframe",
+tmstmp = encodeURIComponent("" + Date.now());
+for (var i = 0; i < rtbhTags.length; i++) {
+ifrSrc += "&id=" + encodeURIComponent(rtbhTags[i]);
+ifrSrc += "&su=" + su + "&sr=" + sr + "&ts=" + tmstmp;
+ifr.setAttribute("src", ifrSrc);
+ifr.setAttribute("width", "1");
+ifr.setAttribute("height", "1");
+ifr.setAttribute("scrolling", "no");
+ifr.setAttribute("frameBorder", "0");
+ifr.setAttribute("style", "display:none");
+ifr.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+document.body.appendChild(ifr);
+window.addEventListener("DOMContentLoaded", function() {
+document.body.appendChild(ifr);

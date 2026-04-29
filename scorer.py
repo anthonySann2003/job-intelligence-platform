@@ -94,7 +94,8 @@ def extract_skills(job: dict) -> dict:
 You are an expert at parsing job descriptions for technical Computer Science and Engineering roles. Extract ONLY hard, measurable skills, requirements, tools, or platforms.
 
 Return valid JSON with exactly these fields:
-- required_skills: list of technical skills/tools that are mandatory for position
+- required_skills: list of technical HARD skills/tools that are mandatory for position, NOT soft skills or buzz words
+    Good skills to return: Python, SQL, R, Salesforce, LangChain, MCP, Agentic AI, CI/CD Pipelines
 - preferred_skills: list of skills that are "nice to have" or "preferred"
 - required_years: integer (number of years of experience required for the role, return 0 ONLY if there is no mention whatsoever of years of experience.
 - required_degree: string (e.g. "bachelor's in CS"), or null if not mentioned
