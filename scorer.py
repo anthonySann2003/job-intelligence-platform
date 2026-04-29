@@ -1,6 +1,5 @@
 import json
 import os
-from datetime import datetime
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -36,28 +35,28 @@ def _llm(prompt: str) -> dict:
                 return {}
 
 
-def _compute_yoe(experience: list[dict]) -> float:
+def _get_yoe(resume: dict) -> float:
     """
-    Sum durations across all experience entries.
-    Handles ISO date strings (YYYY-MM or YYYY-MM-DD).
-    Falls back to 0 for unparseable dates.
+    Read years of experience directly from the resume/profile dict.
+    The user sets this manually in the Profile tab — never computed here.
+    Falls back to 0 if not set so downstream workers still get a valid number.
     """
-    total_months = 0
-    for exp in experience:
-        try:
-            start_str = exp.get("start_date", "")
-            end_str   = exp.get("end_date", "") or datetime.now().strftime("%Y-%m")
+    yoe = resume.get("years_of_experience")
+    try:
+        return float(yoe) if yoe not in (None, "", "None") else 0.0
+    except (ValueError, TypeError):
+        return 0.0
 
-            # Normalise to YYYY-MM-DD so strptime is consistent
-            start = datetime.strptime(start_str[:7], "%Y-%m")
-            end   = datetime.strptime(end_str[:7],   "%Y-%m")
 
-            months = (end.year - start.year) * 12 + (end.month - start.month)
-            total_months += max(0, months)
-        except Exception:
-            continue
-
-    return round(total_months / 12, 1)
+def _normalise_skills(resume: dict) -> list:
+    """
+    Skills may be a list (from the LLM parser) or a comma-separated string
+    (after the user edits them in the Profile tab). Always return a clean list.
+    """
+    skills = resume.get("skills", [])
+    if isinstance(skills, str):
+        return [s.strip() for s in skills.split(",") if s.strip()]
+    return skills
 
 
 # ── Worker A — Skill Extractor ─────────────────────────────────────────────────
@@ -76,9 +75,10 @@ You are an expert at parsing job descriptions for technical Computer Science and
 Return valid JSON with exactly these fields:
 - required_skills: list of technical skills/tools that are mandatory for position
 - preferred_skills: list of skills that are "nice to have" or "preferred"
-- required_years: integer (number of years of experience required for the ROLE, NOT the years required for a skill), return null if not mentioned
+- required_years: integer (number of years of experience required for the role, return 0 ONLY if there is no mention whatsoever of years of experience.
 - required_degree: string (e.g. "bachelor's in CS"), or null if not mentioned
 - required_certifications: list (empty if none)
+- position_level: string (return the level of the position as one of these options: Internship, entry-level, mid-level, senior-level, or director)
 
 Job Title: {job.get("title", "")}
 Company: {job.get("company", "")}
@@ -87,11 +87,12 @@ Job Description:
 """
     result = _llm(prompt)
     return {
-        "required_skills":        result.get("required_skills", []),
-        "preferred_skills":       result.get("preferred_skills", []),
-        "required_years":         result.get("required_years"),
-        "required_degree":        result.get("required_degree"),
+        "required_skills":         result.get("required_skills", []),
+        "preferred_skills":        result.get("preferred_skills", []),
+        "required_years":          result.get("required_years"),
+        "required_degree":         result.get("required_degree"),
         "required_certifications": result.get("required_certifications", []),
+        "position_level":          result.get("position_level", [])
     }
 
 
@@ -100,24 +101,24 @@ Job Description:
 @traceable(name="worker_b_keyword_score", run_type="llm")
 def score_keywords(resume: dict, extracted: dict) -> dict:
     """
-    Worker B: compares the candidate's listed skills against what Worker A
-    pulled from the job. The LLM handles synonym matching (K8s = Kubernetes)
-    which a plain string match would miss. Returns a keyword_score (0-100)
-    plus matched/missing lists that feed directly into the DB columns the
-    rest of the app already reads.
+    Worker B: compares the candidate's skills (from the profile/resume table)
+    against what Worker A pulled from the job. Skills are normalised from the
+    resume dict so any edits made in the Profile tab are reflected here.
     """
+    skills = _normalise_skills(resume)
+
     prompt = f"""
 You are a skill-matching expert.
 
-Resume skills: {json.dumps(resume.get("skills", []))}
+Resume skills: {json.dumps(skills)}
 Required skills from job: {json.dumps(extracted.get("required_skills", []))}
 Preferred skills from job: {json.dumps(extracted.get("preferred_skills", []))}
 
 Scoring rules (apply exactly):
 - Start score = 100
-- For each required skill missing from resume: subtract 20  points
+- For each required skill missing from resume: subtract 20 points
 - For each preferred skill missing from resume: subtract 5 points
-- For each matching skill from resume: add 10 points 
+- For each matching skill from resume: add 10 points
 - If required_skills list is empty, set keyword_score = 80
 - Clamp final score between 0 and 100
 - Consider synonyms (e.g. "K8s" = "kubernetes", "Postgres" = "postgresql")
@@ -146,33 +147,45 @@ Return JSON:
 # ── Worker C — Experience & Qualifications Score ───────────────────────────────
 
 @traceable(name="worker_c_experience_score", run_type="llm")
-def score_experience(resume: dict, extracted: dict, job: dict, yoe: float) -> dict:
+def score_experience(resume: dict, extracted: dict, job: dict) -> dict:
     """
-    Worker C: holistic assessment of years of experience, degree, certifications,
-    and domain similarity. YOE is pre-computed here in Python (not left to the
-    LLM) so the rubric subtraction is deterministic — the LLM only judges the
-    softer domain similarity component.
+    Worker C: holistic assessment of YOE, degree, certifications, and domain
+    similarity. YOE is read from resume["years_of_experience"] — set by the
+    user in the Profile tab, never computed. A clean resume snapshot is built
+    for the prompt so the LLM sees the latest profile-edited values only.
     """
+    yoe = _get_yoe(resume)
+
+    # Send only the fields relevant to experience scoring — avoids sending
+    # stale nested dicts from the original parse alongside profile edits.
+    resume_for_prompt = {
+        "name":                resume.get("name", ""),
+        "summary":             resume.get("summary", ""),
+        "skills":              _normalise_skills(resume),
+        "certifications":      resume.get("certifications", []),
+        "education":           resume.get("education", ""),
+        "years_of_experience": yoe,
+    }
+
     prompt = f"""
 You are an experienced hiring manager evaluating a candidate.
 
-Resume:
-{json.dumps(resume, indent=2)}
-
-Candidate's computed years of experience: {yoe}
+Candidate profile:
+{json.dumps(resume_for_prompt, indent=2)}
 
 Job requirements:
 - Years needed: {extracted.get("required_years", "not specified")}
 - Degree needed: {extracted.get("required_degree", "not specified")}
 - Certifications needed: {json.dumps(extracted.get("required_certifications", []))}
+- Role Level: {json.dumps(extracted.get("position_level", "not specified"))}
 - Role: {job.get("title", "")} at {job.get("company", "")}
 
 Scoring rubric (apply exactly):
 - Start score = 100
-- If required_years is specified and candidate YOE is less: subtract 10 per missing year (max -30)
+- If required_years is specified and candidate years of experience is less: subtract 10 for 1 year missing, 20 for 2 years missing, and set TOTAL SCORE to 0 if missing 3 or more years no matter what other rules you have.
 - If required_degree is specified and not found in resume education: subtract 25
 - For each required certification missing from resume: subtract 10
-- If candidate's experience descriptions seem unrelated to this role's domain: subtract 15
+- If candidate's experience seems unrelated to this role's domain: subtract 15
 - Clamp final score between 0 and 100
 
 Return JSON:
@@ -199,21 +212,22 @@ Return JSON:
 # ── Worker D — Recruiter POV Score ────────────────────────────────────────────
 
 @traceable(name="worker_d_recruiter_score", run_type="llm")
-def score_recruiter(resume: dict, job: dict, yoe: float) -> dict:
+def score_recruiter(resume: dict, job: dict) -> dict:
     """
-    Worker D: simulates a recruiter's gut-check. Runs independently of Workers
-    B and C — it doesn't need the extracted requirements, just the resume and
-    job. The LLM infers role type (intern / junior / mid / senior / startup /
-    enterprise) and weights its scoring accordingly, which captures signals that
-    pure keyword or YOE matching misses (e.g. side projects for a startup role).
+    Worker D: simulates a recruiter's gut-check. Reads YOE and skills directly
+    from the resume/profile dict so any Profile tab edits are reflected here.
     """
+    yoe    = _get_yoe(resume)
+    skills = _normalise_skills(resume)
+
     description_snippet = job.get("description", "")[:500]
+
     prompt = f"""
 You are a recruiter. Score this candidate (0-100) for the role below.
 
 Candidate:
 - Years of experience: {yoe}
-- Top skills: {json.dumps(resume.get("skills", [])[:10])}
+- Top skills: {json.dumps(skills[:10])}
 - Summary: "{resume.get("summary", "")}"
 
 Job: {job.get("title", "")} at {job.get("company", "")}
@@ -222,13 +236,13 @@ Description snippet: {description_snippet}
 Step 1 — Classify the role type: intern, junior, mid, senior, startup, or enterprise.
 Step 2 — Score using these weights for that role type:
 
-| Role type  | YOE weight | Education weight | Projects/Soft skills weight |
-|------------|------------|------------------|-----------------------------|
-| Intern/Junior | 20%    | 40%              | 40%                         |
-| Mid        | 40%        | 20%              | 40%                         |
-| Senior     | 70%        | 5%               | 25%                         |
-| Startup    | 30%        | 10%              | 60%                         |
-| Enterprise | 60%        | 30%              | 10%                         |
+| Role type     | YOE weight | Education weight | Projects/Soft skills weight |
+|---------------|------------|------------------|-----------------------------|
+| Intern/Junior | 20%        | 40%              | 40%                         |
+| Mid           | 40%        | 20%              | 40%                         |
+| Senior        | 70%        | 5%               | 25%                         |
+| Startup       | 30%        | 10%              | 60%                         |
+| Enterprise    | 60%        | 30%              | 10%                         |
 
 Return JSON:
 {{
@@ -259,20 +273,16 @@ def score_job(resume: dict, job: dict) -> dict:
 
     Weights:  keyword 20% | experience 45% | recruiter 35%
 
-    Return shape is identical to the previous scorer so app.py and db.py need
-    no changes. Sub-scores are printed to the terminal for debugging and are
-    available in LangSmith as child spans.
-
-    If any worker fails (returns an empty dict from _llm), its score defaults
-    to 0 — the pipeline always completes and returns something.
+    YOE comes from resume["years_of_experience"] (set in the Profile tab).
+    All workers receive the same resume dict so they always see the latest
+    profile-edited values for skills, summary, certifications, and YOE.
     """
-    yoe = _compute_yoe(resume.get("experience", []))
+    yoe = _get_yoe(resume)
 
-    # A → B, C use A's output; D runs independently
-    extracted  = extract_skills(job)
-    kw         = score_keywords(resume, extracted)
-    exp        = score_experience(resume, extracted, job, yoe)
-    rec        = score_recruiter(resume, job, yoe)
+    extracted = extract_skills(job)
+    kw        = score_keywords(resume, extracted)
+    exp       = score_experience(resume, extracted, job)  # reads YOE internally
+    rec       = score_recruiter(resume, job)              # reads YOE internally
 
     keyword_score    = kw.get("keyword_score", 0)
     experience_score = exp.get("experience_fit", 0)
@@ -285,17 +295,15 @@ def score_job(resume: dict, job: dict) -> dict:
     )
     final_score = max(0, min(100, final_score))
 
-    # Terminal debug output (mirrors the previous scorer's print block)
     print("\n-----------------------------")
     print(f"Job: {job.get('title')} @ {job.get('company')}")
-    print(f"YOE computed: {yoe}")
+    print(f"YOE (from profile): {yoe}")
     print(f"Keyword Score:    {keyword_score}  (matched: {kw.get('matched_required')}, missing: {kw.get('missing_required')})")
     print(f"Experience Score: {experience_score}  ({exp.get('reasoning', '')})")
     print(f"Recruiter Score:  {recruiter_score}  (interview: {rec.get('would_interview')})")
     print(f"Final Score:      {final_score}")
     print("-----------------------------\n")
 
-    # missing_keywords for the DB combines required + preferred gaps
     missing_keywords = kw.get("missing_required", []) + kw.get("missing_preferred", [])
     matched_keywords = kw.get("matched_required", []) + kw.get("matched_preferred", [])
 

@@ -40,7 +40,7 @@ def init_db():
             except Exception:
                 pass  # column already exists, skip
 
-        # Single-row resume store
+        # Single-row resume store — also serves as the user's editable profile
         conn.execute("""
             CREATE TABLE IF NOT EXISTS resumes (
                 id          INTEGER PRIMARY KEY,
@@ -100,7 +100,11 @@ def update_job_score(job_id: int, score: float, keywords: str, missing_keywords:
 
 
 def save_resume(parsed: dict, filename: str = ""):
-    """Persist a single parsed resume, replacing any existing one."""
+    """
+    Persist a single resume/profile, replacing any existing one.
+    Called both on initial PDF parse and whenever the user saves edits
+    from the Profile tab — single source of truth for the scorer.
+    """
     with get_connection() as conn:
         conn.execute("DELETE FROM resumes")
         conn.execute("""
@@ -108,6 +112,13 @@ def save_resume(parsed: dict, filename: str = ""):
             VALUES (1, ?, ?, ?)
         """, (json.dumps(parsed), filename, datetime.utcnow().isoformat()))
         conn.commit()
+
+
+def load_resume() -> dict | None:
+    """Return the stored resume/profile dict, or None if none exists."""
+    with get_connection() as conn:
+        row = conn.execute("SELECT parsed_json FROM resumes LIMIT 1").fetchone()
+    return json.loads(row[0]) if row else None
 
 
 def clear_job_score(job_id: int):
@@ -119,10 +130,3 @@ def clear_job_score(job_id: int):
             WHERE id = ?
         """, (job_id,))
         conn.commit()
-
-
-def load_resume() -> dict | None:
-    """Return the stored parsed resume dict, or None if none exists."""
-    with get_connection() as conn:
-        row = conn.execute("SELECT parsed_json FROM resumes LIMIT 1").fetchone()
-    return json.loads(row[0]) if row else None
