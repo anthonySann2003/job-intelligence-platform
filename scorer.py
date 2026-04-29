@@ -13,12 +13,6 @@ client = wrap_openai(OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _llm(prompt: str) -> dict:
-    """
-    Single shared LLM call used by all workers.
-    Retries once on JSON parse failure, returns empty dict on second failure.
-    All calls flow through the LangSmith-wrapped client so every worker's
-    token usage and latency appears as a child span automatically.
-    """
     for attempt in range(2):
         try:
             response = client.chat.completions.create(
@@ -34,12 +28,6 @@ def _llm(prompt: str) -> dict:
                 return {}
 
 def _llmUpgraded(prompt: str) -> dict:
-    """
-    Single shared LLM call used by all workers using better LLM model.
-    Retries once on JSON parse failure, returns empty dict on second failure.
-    All calls flow through the LangSmith-wrapped client so every worker's
-    token usage and latency appears as a child span automatically.
-    """
     for attempt in range(2):
         try:
             response = client.chat.completions.create(
@@ -56,11 +44,6 @@ def _llmUpgraded(prompt: str) -> dict:
 
 
 def _get_yoe(resume: dict) -> float:
-    """
-    Read years of experience directly from the resume/profile dict.
-    The user sets this manually in the Profile tab — never computed here.
-    Falls back to 0 if not set so downstream workers still get a valid number.
-    """
     yoe = resume.get("years_of_experience")
     try:
         return float(yoe) if yoe not in (None, "", "None") else 0.0
@@ -69,10 +52,6 @@ def _get_yoe(resume: dict) -> float:
 
 
 def _normalise_skills(resume: dict) -> list:
-    """
-    Skills may be a list (from the LLM parser) or a comma-separated string
-    (after the user edits them in the Profile tab). Always return a clean list.
-    """
     skills = resume.get("skills", [])
     if isinstance(skills, str):
         return [s.strip() for s in skills.split(",") if s.strip()]
@@ -83,12 +62,6 @@ def _normalise_skills(resume: dict) -> list:
 
 @traceable(name="worker_a_extract_skills", run_type="llm")
 def extract_skills(job: dict) -> dict:
-    """
-    Worker A: reads the raw job description and pulls out hard, measurable
-    requirements. This runs first because Workers B and C both depend on its
-    output. If it fails, downstream workers fall back to empty lists/nulls
-    so the pipeline still completes rather than crashing.
-    """
     prompt = f"""
 You are an expert at parsing job descriptions for technical Computer Science and Engineering roles. Extract ONLY hard, measurable skills, requirements, tools, or platforms.
 
@@ -121,11 +94,6 @@ Job Description:
 
 @traceable(name="worker_b_keyword_score", run_type="llm")
 def score_keywords(resume: dict, extracted: dict) -> dict:
-    """
-    Worker B: compares the candidate's skills (from the profile/resume table)
-    against what Worker A pulled from the job. Skills are normalised from the
-    resume dict so any edits made in the Profile tab are reflected here.
-    """
     skills = _normalise_skills(resume)
 
     prompt = f"""
@@ -199,20 +167,77 @@ Return JSON:
     }
 
 
+# ── Worker C Judge ─────────────────────────────────────────────────────────────
+
+@traceable(name="worker_c_judge", run_type="llm")
+def judge_experience(resume_for_prompt: dict, extracted: dict, job: dict, worker_c_result: dict) -> dict:
+    """
+    Judge for Worker C. Receives the same inputs Worker C saw plus Worker C's
+    full output. Verifies that the deductions described in the reasoning
+    actually sum to 100 - experience_fit. If they don't match, corrects the
+    score based on the reasoning. Does not re-evaluate the candidate.
+    """
+    prompt = f"""
+<role>
+You are an arithmetic auditor. You do not re-evaluate candidates. Your only job is to verify that the deductions described in a scorer's reasoning correctly add up to the score it returned, and fix it if they don't.
+</role>
+
+<candidate_information>
+{json.dumps(resume_for_prompt, indent=2)}
+</candidate_information>
+
+<job_information>
+- Years needed: {extracted.get("required_years", "not specified")}
+- Degree needed: {extracted.get("required_degree", "not specified")}
+- Certifications needed: {json.dumps(extracted.get("required_certifications", []))}
+- Role Level: {extracted.get("position_level", "not specified")}
+- Role: {job.get("title", "")} at {job.get("company", "")}
+</job_information>
+
+<worker_c_output>
+Score returned: {worker_c_result.get("experience_fit")}
+Reasoning: {worker_c_result.get("reasoning")}
+</worker_c_output>
+
+<instructions>
+1. Read the reasoning carefully and list every deduction mentioned with its point value.
+2. Sum all the deductions found in the reasoning.
+3. Compute what the score should be: 100 - total deductions.
+4. Compare that to the score returned.
+5. If they match: corrected_score = the returned score.
+6. If they do not match: corrected_score = 100 - total deductions from the reasoning.
+7. Do not invent new deductions. Only use what is explicitly stated in the reasoning.
+</instructions>
+
+Return JSON:
+{{
+  "deductions_found": list of integers,
+  "deductions_sum": integer,
+  "expected_score": integer,
+  "returned_score": integer,
+  "scores_match": boolean,
+  "corrected_score": integer,
+  "judge_reasoning": "one sentence explaining what you found and what correction if any was made"
+}}
+"""
+    result = _llm(prompt)
+    return {
+        "deductions_found": result.get("deductions_found", []),
+        "deductions_sum":   result.get("deductions_sum", 0),
+        "expected_score":   result.get("expected_score", worker_c_result.get("experience_fit", 0)),
+        "returned_score":   result.get("returned_score", worker_c_result.get("experience_fit", 0)),
+        "scores_match":     result.get("scores_match", True),
+        "corrected_score":  result.get("corrected_score", worker_c_result.get("experience_fit", 0)),
+        "judge_reasoning":  result.get("judge_reasoning", ""),
+    }
+
+
 # ── Worker C — Experience & Qualifications Score ───────────────────────────────
 
 @traceable(name="worker_c_experience_score", run_type="llm")
 def score_experience(resume: dict, extracted: dict, job: dict) -> dict:
-    """
-    Worker C: holistic assessment of YOE, degree, certifications, and domain
-    similarity. YOE is read from resume["years_of_experience"] — set by the
-    user in the Profile tab, never computed. A clean resume snapshot is built
-    for the prompt so the LLM sees the latest profile-edited values only.
-    """
     yoe = _get_yoe(resume)
 
-    # Send only the fields relevant to experience scoring — avoids sending
-    # stale nested dicts from the original parse alongside profile edits.
     resume_for_prompt = {
         "name":                resume.get("name", ""),
         "summary":             resume.get("summary", ""),
@@ -220,47 +245,105 @@ def score_experience(resume: dict, extracted: dict, job: dict) -> dict:
         "certifications":      resume.get("certifications", []),
         "education":           resume.get("education", ""),
         "years_of_experience": yoe,
+        "professional_level":  resume.get("professional_level", "not specified"),
     }
 
+    candidate_level = resume_for_prompt["professional_level"]
+
     prompt = f"""
-You are an experienced hiring manager evaluating a candidate.
+<role>
+You are a precise hiring evaluator. You follow scoring rules exactly as written, perform arithmetic carefully, and never deviate from the rubric.
+</role>
 
-Candidate profile:
+<candidate_information>
 {json.dumps(resume_for_prompt, indent=2)}
+</candidate_information>
 
-Job requirements:
+<job_information>
 - Years needed: {extracted.get("required_years", "not specified")}
 - Degree needed: {extracted.get("required_degree", "not specified")}
 - Certifications needed: {json.dumps(extracted.get("required_certifications", []))}
-- Role Level: {json.dumps(extracted.get("position_level", "not specified"))}
+- Role Level: {extracted.get("position_level", "not specified")}
 - Role: {job.get("title", "")} at {job.get("company", "")}
+</job_information>
 
-Scoring rubric (apply exactly):
-- Start score = 100
-- If required_years is specified and candidate years of experience is less: subtract 10 for 1 year missing, 20 for 2 years missing, and set TOTAL SCORE to 0 if missing 3 or more years no matter what other rules you have.
-- If required_degree is specified and not found in resume education: subtract 25
-- For each required certification missing from resume: subtract 10
-- If candidate's experience seems unrelated to this role's domain: subtract 15
-- Clamp final score between 0 and 100
+<scoring_rules>
+Start at 100. Apply each deduction below in order. Track your running score after each step.
 
-Return JSON:
+STEP 1 — YEARS OF EXPERIENCE:
+- If "Years needed" is 0, null, or "not specified": deduct 0 points, move on.
+- If "Years needed" is a real number greater than 0 AND the candidate's years_of_experience is less than that number: deduct 25 points.
+- Otherwise: deduct 0 points.
+
+STEP 2 — PROFESSIONAL LEVEL:
+The seniority levels ranked from 1 (lowest) to 5 (highest) are:
+1 = Internship
+2 = Entry-level
+3 = Mid-level
+4 = Senior-level
+5 = Director
+
+- If "Role Level" is null or "not specified": deduct 0 points, move on.
+- Find the number for the candidate's level ({candidate_level}) and the number for the job's Role Level.
+- If the candidate's number is LESS THAN the job's number: deduct 40 points.
+- If the candidate's number is GREATER THAN OR EQUAL TO the job's number: deduct 0 points.
+
+STEP 3 — EDUCATION:
+- If "Degree needed" is null or "not specified": deduct 0 points, move on.
+- If the candidate's education does not meet or exceed the required degree: deduct 15 points.
+- Otherwise: deduct 0 points.
+
+STEP 4 — CERTIFICATIONS:
+- If "Certifications needed" is an empty list: deduct 0 points, move on.
+- If the candidate is missing any required certification: deduct 10 points total (not per certification).
+- Otherwise: deduct 0 points.
+
+STEP 5 — DOMAIN RELEVANCE:
+- If the candidate's summary is completely unrelated to the job title and domain: deduct 10 points.
+- If there is any reasonable overlap: deduct 0 points.
+
+STEP 6 — FINAL SCORE:
+- Your running score after Step 5 is your experience_fit. Copy that number directly.
+- Do NOT apply any additional deductions beyond Steps 1-5.
+- Do NOT perform any further arithmetic. The running score is already the answer.
+</scoring_rules>
+
+<critical_rules>
+- You have exactly 5 steps to apply deductions. There are no other deductions.
+- Any deduction not listed in Steps 1-5 is forbidden. Do not invent new penalties.
+- The running score after Step 5 = experience_fit. Do not subtract it from anything.
+</critical_rules>
+
+<output_format>
+Return only valid JSON. The experience_fit value MUST equal 100 minus the sum of all deductions you applied.
 {{
   "experience_fit": integer,
   "years_meet": boolean,
   "degree_meet": boolean,
   "certifications_meet": boolean,
+  "level_meet": boolean,
   "similar_role_experience": "one sentence on domain relevance",
-  "reasoning": "brief overall explanation"
+  "reasoning": "walk through each step: what you checked, what you deducted, and your running score after each step"
 }}
+</output_format>
 """
     result = _llm(prompt)
+
+    # Pass Worker C's output to the judge for arithmetic verification
+    judge = judge_experience(resume_for_prompt, extracted, job, result)
+
+    # Log when the judge makes a correction
+    if not judge.get("scores_match"):
+        print(f"[judge_c] Corrected score: {judge['returned_score']} → {judge['corrected_score']} | {judge['judge_reasoning']}")
+
     return {
-        "experience_fit":          int(result.get("experience_fit", 0)),
+        "experience_fit":          judge["corrected_score"],
         "years_meet":              result.get("years_meet", False),
         "degree_meet":             result.get("degree_meet", False),
         "certifications_meet":     result.get("certifications_meet", False),
         "similar_role_experience": result.get("similar_role_experience", ""),
         "reasoning":               result.get("reasoning", ""),
+        "judge_reasoning":         judge.get("judge_reasoning", ""),
     }
 
 
@@ -268,10 +351,6 @@ Return JSON:
 
 @traceable(name="worker_d_recruiter_score", run_type="llm")
 def score_recruiter(resume: dict, job: dict) -> dict:
-    """
-    Worker D: simulates a recruiter's gut-check. Reads YOE and skills directly
-    from the resume/profile dict so any Profile tab edits are reflected here.
-    """
     yoe    = _get_yoe(resume)
     skills = _normalise_skills(resume)
 
@@ -322,23 +401,12 @@ Return JSON:
 
 @traceable(name="score_job", run_type="tool")
 def score_job(resume: dict, job: dict) -> dict:
-    """
-    Runs all four workers in sequence and combines their scores into a single
-    weighted final score.
-
-    Weights:  keyword 20% | experience 45% | recruiter 35%
-
-    YOE comes from resume["years_of_experience"] (set in the Profile tab).
-    All workers receive the same resume dict so they always see the latest
-    profile-edited values for skills, summary, certifications, and YOE.
-    """
-
     yoe = _get_yoe(resume)
 
     extracted = extract_skills(job)
     kw        = score_keywords(resume, extracted)
-    exp       = score_experience(resume, extracted, job)  # reads YOE internally
-    rec       = score_recruiter(resume, job)              # reads YOE internally
+    exp       = score_experience(resume, extracted, job)
+    rec       = score_recruiter(resume, job)
 
     keyword_score    = kw.get("keyword_score", 0)
     experience_score = exp.get("experience_fit", 0)
@@ -356,6 +424,7 @@ def score_job(resume: dict, job: dict) -> dict:
     print(f"YOE (from profile): {yoe}")
     print(f"Keyword Score:    {keyword_score}  (matched: {kw.get('matched_required')}, missing: {kw.get('missing_required')})")
     print(f"Experience Score: {experience_score}  ({exp.get('reasoning', '')})")
+    print(f"Judge Note:       {exp.get('judge_reasoning', 'no correction needed')}")
     print(f"Recruiter Score:  {recruiter_score}  (interview: {rec.get('would_interview')})")
     print(f"Final Score:      {final_score}")
     print("-----------------------------\n")
@@ -364,13 +433,11 @@ def score_job(resume: dict, job: dict) -> dict:
     matched_keywords = kw.get("matched_required", []) + kw.get("matched_preferred", [])
 
     return {
-        # ── Columns the rest of the app already reads ──
         "score":            final_score,
         "keywords":         matched_keywords,
         "missing_keywords": missing_keywords,
         "llm_summary":      exp.get("reasoning") or rec.get("potential_judgment", ""),
 
-        # ── Sub-scores available for future insights tab / judge ──
         "sub_scores": {
             "keyword_score":    keyword_score,
             "experience_score": experience_score,
@@ -380,6 +447,7 @@ def score_job(resume: dict, job: dict) -> dict:
             "would_interview":  rec.get("would_interview"),
             "kw_reasoning":     kw.get("reasoning"),
             "exp_reasoning":    exp.get("reasoning"),
+            "judge_reasoning":  exp.get("judge_reasoning"),
             "rec_judgment":     rec.get("potential_judgment"),
         }
     }
