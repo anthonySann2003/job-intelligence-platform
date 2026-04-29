@@ -1,7 +1,5 @@
 import json
 import os
-import re
-from bs4 import BeautifulSoup
 from openai import OpenAI
 from dotenv import load_dotenv
 

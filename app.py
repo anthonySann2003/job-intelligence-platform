@@ -57,11 +57,12 @@ def _resume_to_profile(resume: dict) -> dict:
         "certifications":      ", ".join(certs) if isinstance(certs, list) else certs,
         "education":           education_str,
         "experience":          experience_str,
+        "professional_level":  resume.get("professional_level", ""),
     }
 
 
 def _profile_fields_to_dict(
-    name, email, summary, skills, yoe, certifications, education, experience
+    name, email, summary, skills, yoe, certifications, education, experience, professional_level
 ) -> dict:
     try:
         yoe_clean = float(yoe) if yoe not in (None, "", "None") else None
@@ -77,6 +78,7 @@ def _profile_fields_to_dict(
         "certifications":      [c.strip() for c in certifications.split(",") if c.strip()],
         "education":           education,
         "experience":          experience,
+        "professional_level":  professional_level,
     }
 
 
@@ -244,14 +246,15 @@ def load_from_resume():
         p["certifications"],
         p["education"],
         p["experience"],
+        None,
         "✅ Fields populated from resume — review and click Save Profile.",
     )
 
 
-def handle_save_profile(name, email, summary, skills, yoe, certifications, education, experience):
+def handle_save_profile(name, email, summary, skills, yoe, certifications, education, experience, professional_level):
     global parsed_resume
     edits = _profile_fields_to_dict(
-        name, email, summary, skills, yoe, certifications, education, experience
+        name, email, summary, skills, yoe, certifications, education, experience, professional_level
     )
     parsed_resume = {**parsed_resume, **edits}
     save_resume(parsed_resume)
@@ -359,6 +362,12 @@ with gr.Blocks(title="Job Dashboard") as app:
             precision=1,
         )
 
+        prof_level = gr.Dropdown(
+            label="Professional Level",
+            choices=["Internship", "Entry-level", "Mid-level", "Senior-level", "Director"],
+            value=parsed_resume.get("professional_level") or None,
+        )
+
         gr.Markdown("### Education")
         gr.Markdown("*One entry per line, e.g. `BSc Computer Science @ University X (2019)`*")
         prof_education = gr.Textbox(
@@ -378,7 +387,7 @@ with gr.Blocks(title="Job Dashboard") as app:
         _all_fields = [
             prof_name, prof_email, prof_summary,
             prof_skills, prof_yoe, prof_certs,
-            prof_education, prof_experience,
+            prof_education, prof_experience, prof_level,
         ]
 
         load_resume_btn.click(
