@@ -129,19 +129,42 @@ def score_keywords(resume: dict, extracted: dict) -> dict:
     skills = _normalise_skills(resume)
 
     prompt = f"""
-You are a skill-matching expert.
+You are acting as a very harsh and brutally honest keyword scoring machine comparing a job description and candidate's resume and you always follow the same order of operations provided below:
 
-Resume skills: {json.dumps(skills)}
-Required skills from job: {json.dumps(extracted.get("required_skills", []))}
-Preferred skills from job: {json.dumps(extracted.get("preferred_skills", []))}
+1. As a crticial and ubiased keyword scoring machine, score the required skills for the job versus the candidate's skills according to the rubric below with 70 being a perfect score for required skills and 0 being the worst score possible:
+65-70 points = The candidate has all or almost all of the required skills for the position, but any missing skills are somewhat related to the candidate's skills (IDEAL CANDIDATE).
+60-65 points = The candidate has almost all of the required skills for the position, and any missing skills are unrelated to the candidate's skills (GOOD CANDIDATE).
+55-60 points = The candidate only has half or some of the required skills for the position, but the missing skills are somewhat related to the candidate's skills (POTENTIAL CANDIDATE).
+45-55 points = The candidate only has half or some of the required skills for the position, and the missing skills are unrelated to the candidate's skills (MEDIORCRE CANDIDATE).
+35-45 points = The candidate is missing most of the required skills, but most of the missing skills are somewhat related to the candidate's skills (UNLIKELY CANDIDATE).
+15-35 points = The candidate is missing most of the required skills, and the missing skills are mostly unrelated to the candidate's skills (REJECTED CANDIDATE).
+0-15 points = The candidate is missing most or all of required skills, and the missing skills are mostly unrelated to the candidate's skills (IMPOSSIBLE CANDIDATE).
 
-Scoring rules (apply exactly):
-- Start score = 100
-- For each required skill missing from resume: subtract 20 points
-- For each preferred skill missing from resume: subtract 5 points
-- For each matching skill from resume: add 10 points
-- If required_skills list is empty, set keyword_score = 80
-- Clamp final score between 0 and 100
+Required skills for job: {json.dumps(extracted.get("required_skills", []))}
+Candidate's skills: {json.dumps(skills)}
+
+After scoring the required skills, cite the exact points range you went with and the reasoning for it in the reasoning json field.
+
+2. As a crticial and ubiased keyword scoring machine, score the preferred skills for the job versus the candidate's skills according to the rubric below with 30 being a perfect score for preferred skills and 0 being the worst: 
+25-30 points = The candidate has all or almost all of the preferred skills for the position, and any missing skills are somewhat related to the candidate's skills (IDEAL CANDIDATE).
+20-25 points = The candidate has some or more than half of the preferred skills, and missing skills are somewhat related to the candidate's skills (GOOD CANDIDATE). 
+10-20 points = The candidate has half or less than half of the preferred skills, and the missing skills are mostly unrelated to the candidate's skills (MEDIOCRE CANDIDATE)
+0-10 points = The candidate is missing most or all of the preferred skills, and missing skills are mostly unrelated to the candidate's skills (REJECTED CANDIDATE).
+
+Preferred skills for job: {json.dumps(extracted.get("preferred_skills", []))}
+Candidate's skills: {json.dumps(skills)}
+
+After scoring the preferred skills, cite the exact points range you went with and the reasoning for it in the reasoning json field combined with your reasoning from the required skills section.
+
+3. After scoring both the required and preferred skills against the candidate's skills, add together the points from each and return the final result in the keyword_score json field.
+Also fill out the matched_required, missing_required, matched_preferred, missing_preferred lists accordingly.
+
+General Rules When Scoring:
+- Final score must be between 0 and 100
+- Each rubric is a seperate score, judge the required skills individually from the preferred skills
+- A 70 in the required skills means the candidate is missing no required skills, and a 30 in the preferred means the candidate is missing no preferred skills.
+- You are a harsh and critical scoring system with emphasis on being unbiased and purely data centric
+- If required_skills list is empty, set keyword_score = 80 and return with explanation that it was empty so defaulted to 80.
 - Consider synonyms (e.g. "K8s" = "kubernetes", "Postgres" = "postgresql")
 
 Return JSON:
@@ -151,7 +174,7 @@ Return JSON:
   "missing_required": list,
   "matched_preferred": list,
   "missing_preferred": list,
-  "reasoning": "brief explanation"
+  "reasoning": "brief explanation of reasoning with specific point ranges cited"
 }}
 """
     result = _llm(prompt)
