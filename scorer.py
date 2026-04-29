@@ -34,6 +34,27 @@ def _llm(prompt: str) -> dict:
                 print(f"[scorer] LLM call failed after retry: {e}")
                 return {}
 
+def _llmUpgraded(prompt: str) -> dict:
+    """
+    Single shared LLM call used by all workers using better LLM model.
+    Retries once on JSON parse failure, returns empty dict on second failure.
+    All calls flow through the LangSmith-wrapped client so every worker's
+    token usage and latency appears as a child span automatically.
+    """
+    for attempt in range(2):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1000,
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
+        except (json.JSONDecodeError, Exception) as e:
+            if attempt == 1:
+                print(f"[scorer] LLM call failed after retry: {e}")
+                return {}
+
 
 def _get_yoe(resume: dict) -> float:
     """
@@ -85,7 +106,7 @@ Company: {job.get("company", "")}
 Job Description:
 {job.get("description", "")}
 """
-    result = _llm(prompt)
+    result = _llmUpgraded(prompt)
     return {
         "required_skills":         result.get("required_skills", []),
         "preferred_skills":        result.get("preferred_skills", []),
