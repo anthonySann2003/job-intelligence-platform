@@ -130,3 +130,70 @@ def clear_job_score(job_id: int):
             WHERE id = ?
         """, (job_id,))
         conn.commit()
+
+def get_insights() -> dict:
+    """
+    Aggregate insights from all scored jobs in the DB.
+    Returns a dict with score distribution, missing keyword counts,
+    and top scored jobs. No new LLM calls — purely SQL + Python aggregation.
+    """
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM jobs WHERE score IS NOT NULL ORDER BY score DESC"
+        ).fetchall()
+
+    jobs = [dict(row) for row in rows]
+
+    if not jobs:
+        return {"empty": True}
+
+    # ── Score distribution ─────────────────────────────────────────────────
+    distribution = {
+        "strong":  0,  # 80-100
+        "good":    0,  # 66-79
+        "partial": 0,  # 50-65
+        "poor":    0,  # 0-49
+    }
+    for job in jobs:
+        score = job["score"]
+        if score >= 80:
+            distribution["strong"]  += 1
+        elif score >= 66:
+            distribution["good"]    += 1
+        elif score >= 50:
+            distribution["partial"] += 1
+        else:
+            distribution["poor"]    += 1
+
+    # ── Missing keyword frequency ──────────────────────────────────────────
+    keyword_counts = {}
+    for job in jobs:
+        raw = job.get("missing_keywords")
+        if not raw:
+            continue
+        try:
+            keywords = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        for kw in keywords:
+            kw = kw.strip().lower()
+            if kw:
+                keyword_counts[kw] = keyword_counts.get(kw, 0) + 1
+
+    top_missing = sorted(
+        keyword_counts.items(),
+        key=lambda x: x[1],
+        reverse=True,
+    )[:10]
+
+    # ── Top scored jobs ────────────────────────────────────────────────────
+    top_jobs = jobs[:10]
+
+    return {
+        "empty":        False,
+        "total_scored": len(jobs),
+        "distribution": distribution,
+        "top_missing":  top_missing,
+        "top_jobs":     top_jobs,
+    }

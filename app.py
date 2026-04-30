@@ -264,6 +264,69 @@ def clear_score(job_id_str: str):
     return f"✅ Score cleared for job ID {job_id}.", format_jobs(load_jobs())
 
 
+# --- Show insights function
+def show_insights():
+    from db import get_insights
+    data = get_insights()
+
+    if data.get("empty"):
+        return "No scored jobs yet — run a search and score some jobs first."
+
+    total = data["total_scored"]
+    dist  = data["distribution"]
+
+    def _bar(count, total):
+        filled = round((count / total) * 20) if total else 0
+        return "█" * filled + "░" * (20 - filled)
+
+    # ── Score distribution ─────────────────────────────────────────────────
+    dist_md = f"""## 📊 Score Distribution
+*{total} scored jobs total*
+
+| Fit Level | Range | Jobs | Distribution |
+|-----------|-------|------|--------------|
+| 💚 Strong fit  | 80–100 | {dist['strong']}  | `{_bar(dist['strong'],  total)}` |
+| 🟢 Good fit    | 66–79  | {dist['good']}    | `{_bar(dist['good'],    total)}` |
+| 🟡 Partial fit | 50–65  | {dist['partial']} | `{_bar(dist['partial'], total)}` |
+| 🔴 Poor fit    | 0–49   | {dist['poor']}    | `{_bar(dist['poor'],    total)}` |
+"""
+
+    # ── Missing keywords ───────────────────────────────────────────────────
+    if data["top_missing"]:
+        kw_rows = "\n".join(
+            f"| {i+1}. | {kw.title()} | {count} job{'s' if count != 1 else ''} |"
+            for i, (kw, count) in enumerate(data["top_missing"])
+        )
+        kw_md = f"""---
+## ❌ Top Missing Keywords
+*Skills appearing most often in your gaps — consider adding these to your resume*
+
+| # | Keyword | Missing In |
+|---|---------|------------|
+{kw_rows}
+"""
+    else:
+        kw_md = "---\n## ❌ Top Missing Keywords\nNo keyword data yet.\n"
+
+    # ── Top scored jobs ────────────────────────────────────────────────────
+    if data["top_jobs"]:
+        job_rows = "\n".join(
+            f"| {i+1}. | {job['title']} | {job['company']} | "
+            f"{'💚' if job['score'] >= 80 else '🟢' if job['score'] >= 66 else '🟡' if job['score'] >= 50 else '🔴'} "
+            f"{job['score']}/100 | [View]({job['url']}) |"
+            for i, job in enumerate(data["top_jobs"])
+        )
+        jobs_md = f"""---
+## ⭐ Top Scored Jobs
+| # | Title | Company | Score | Link |
+|---|-------|---------|-------|------|
+{job_rows}
+"""
+    else:
+        jobs_md = "---\n## ⭐ Top Scored Jobs\nNo scored jobs yet.\n"
+
+    return dist_md + kw_md + jobs_md
+
 # ── Resume tab ─────────────────────────────────────────────────────────────────
 
 def upload_resume(file):
@@ -404,6 +467,16 @@ with gr.Blocks(title="Job Intelligence Dashboard") as app:
             inputs=[experience_level, category, state, job_titles, notes],
             outputs=[search_status, search_results],
         )
+
+    #--- Insights tab ---
+    with gr.Tab("Insights"):
+        gr.Markdown(
+            "Aggregate insights across all your scored jobs. "
+            "Run a search and score jobs first to see data here."
+        )
+        insights_btn     = gr.Button("Load Insights", variant="primary")
+        insights_output  = gr.Markdown()
+        insights_btn.click(fn=show_insights, outputs=[insights_output])
 
     with gr.Tab("Saved Jobs"):
         load_btn      = gr.Button("Load Saved Jobs", variant="secondary")
