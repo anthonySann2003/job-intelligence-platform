@@ -171,7 +171,7 @@ def run_search(
         return
 
     # ── Step 1 — Search ────────────────────────────────────────────────────────
-    yield "🔍 Searching The Muse...", ""
+    yield "🔍 Searching for jobs...", ""
 
     try:
         jobs = run_agentic_search(
