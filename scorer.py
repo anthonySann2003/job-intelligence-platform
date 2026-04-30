@@ -58,6 +58,45 @@ def _normalise_skills(resume: dict) -> list:
     return skills
 
 
+@traceable(name="summarize_job", run_type="llm")
+def summarize_job(job: dict) -> str:
+    """
+    Single gpt-4o-mini call that reads the job description and returns
+    a clean 2-3 sentence summary of what the role is.
+    Describes the job itself — not candidate fit.
+    """
+    prompt = f"""
+You are a job summarizer. Read the job posting below and write a concise
+2-3 sentence summary describing what the role is, what the company does,
+and what the main focus of the work will be.
+
+Write in plain English. Do not mention the candidate, scoring, or fit.
+Do not use bullet points. Just 2-3 clean sentences.
+
+Job Title: {job.get("title", "")}
+Company: {job.get("company", "")}
+Description:
+{job.get("description", "")[:3000]}
+
+Return ONLY valid JSON:
+{{"summary": "2-3 sentence summary here"}}
+"""
+    for attempt in range(2):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=200,
+                response_format={"type": "json_object"},
+            )
+            result = json.loads(response.choices[0].message.content)
+            return result.get("summary", "")
+        except Exception as e:
+            if attempt == 1:
+                print(f"[summarize_job] Failed after retry: {e}")
+                return ""
+
+
 # ── Worker A — Skill Extractor ─────────────────────────────────────────────────
 
 @traceable(name="worker_a_extract_skills", run_type="llm")
@@ -219,12 +258,6 @@ Return JSON:
 
 @traceable(name="worker_c_judge", run_type="llm")
 def judge_experience(resume_for_prompt: dict, extracted: dict, job: dict, worker_c_result: dict) -> dict:
-    """
-    Judge for Worker C. Receives the same inputs Worker C saw plus Worker C's
-    full output. Verifies that the deductions described in the reasoning
-    actually sum to 100 - experience_fit. If they don't match, corrects the
-    score based on the reasoning. Does not re-evaluate the candidate.
-    """
     prompt = f"""
 <role>
 You are an arithmetic auditor. You do not re-evaluate candidates. Your only job is to verify that the deductions described in a scorer's reasoning correctly add up to the score it returned, and fix it if they don't.
@@ -333,7 +366,7 @@ The seniority levels ranked from 1 (lowest) to 5 (highest) are:
 
 - If "Role Level" is null or "not specified": deduct 0 points, move on.
 - Find the number for the candidate's level ({candidate_level}) and the number for the job's Role Level.
-- If the candidate's number is LESS THAN the job's number: deduct 40 points.
+- If the candidate's number is LESS THAN the job's number: deduct 35 points.
 - If the candidate's number is GREATER THAN OR EQUAL TO the job's number: deduct 0 points.
 
 STEP 3 — EDUCATION:
@@ -343,7 +376,7 @@ STEP 3 — EDUCATION:
 
 STEP 4 — CERTIFICATIONS:
 - If "Certifications needed" is an empty list: deduct 0 points, move on.
-- If the candidate is missing any required certification: deduct 10 points total (not per certification).
+- If the candidate is missing any required certification: deduct 15 points total (not per certification).
 - Otherwise: deduct 0 points.
 
 STEP 5 — DOMAIN RELEVANCE:
@@ -376,11 +409,8 @@ Return only valid JSON. The experience_fit value MUST equal 100 minus the sum of
 </output_format>
 """
     result = _llm(prompt)
+    judge  = judge_experience(resume_for_prompt, extracted, job, result)
 
-    # Pass Worker C's output to the judge for arithmetic verification
-    judge = judge_experience(resume_for_prompt, extracted, job, result)
-
-    # Log when the judge makes a correction
     if not judge.get("scores_match"):
         print(f"[judge_c] Corrected score: {judge['returned_score']} → {judge['corrected_score']} | {judge['judge_reasoning']}")
 
@@ -515,20 +545,23 @@ def score_job(resume: dict, job: dict) -> dict:
     recruiter_score  = rec.get("recruiter_score", 0)
 
     final_score = round(
-        (keyword_score    * 0.25) +
-        (experience_score * 0.45) +
+        (keyword_score    * 0.30) +
+        (experience_score * 0.40) +
         (recruiter_score  * 0.30)
     )
     final_score = max(0, min(100, final_score))
 
+    # Generate clean job summary for UI display
+    summary = summarize_job(job)
+
     print("\n-----------------------------")
     print(f"Job: {job.get('title')} @ {job.get('company')}")
     print(f"YOE (from profile): {yoe}")
-    print(f"Keyword Score:    {keyword_score}  (matched: {kw.get('matched_required')}, missing: {kw.get('missing_required')})")
-    print(f"Experience Score: {experience_score}  ({exp.get('reasoning', '')})")
-    print(f"Judge Note:       {exp.get('judge_reasoning', 'no correction needed')}")
-    print(f"Recruiter Score:  {recruiter_score}  (interview: {rec.get('would_interview')})")
+    print(f"Keyword Score:    {keyword_score}")
+    print(f"Experience Score: {experience_score}")
+    print(f"Recruiter Score:  {recruiter_score}")
     print(f"Final Score:      {final_score}")
+    print(f"Summary:          {summary[:80]}...")
     print("-----------------------------\n")
 
     missing_keywords = kw.get("missing_required", []) + kw.get("missing_preferred", [])
@@ -538,7 +571,7 @@ def score_job(resume: dict, job: dict) -> dict:
         "score":            final_score,
         "keywords":         matched_keywords,
         "missing_keywords": missing_keywords,
-        "llm_summary":      exp.get("reasoning") or rec.get("potential_judgment", ""),
+        "llm_summary":      summary,
 
         "sub_scores": {
             "keyword_score":    keyword_score,

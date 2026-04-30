@@ -104,28 +104,45 @@ def format_jobs(jobs: list[dict]) -> str:
 
     output = ""
     for i, job in enumerate(jobs, 1):
+
+        # ── Salary line ───────────────────────────────────────────────────
         salary = ""
         if job.get("salary_min") and job.get("salary_max"):
-            salary = f"${job['salary_min']:,.0f} – ${job['salary_max']:,.0f}"
+            salary = f"💰 ${job['salary_min']:,.0f} – ${job['salary_max']:,.0f}"
         elif job.get("salary_min"):
-            salary = f"From ${job['salary_min']:,.0f}"
+            salary = f"💰 From ${job['salary_min']:,.0f}"
 
+        # ── Score line ────────────────────────────────────────────────────
         score_line = ""
         if job.get("score") is not None:
-            score_line = f"⭐ Score: {job['score']}/100  |  {job.get('llm_summary', '')}\n"
-            if job.get("missing_keywords"):
-                try:
-                    missing = json.loads(job["missing_keywords"])
-                except (json.JSONDecodeError, TypeError):
-                    missing = []
-                if missing:
-                    score_line += f"❌ Missing: {', '.join(missing[:8])}\n"
+            score      = job["score"]
+            score_line = f"⭐ **Score: {score}/100**"
 
+        # ── Summary line ──────────────────────────────────────────────────
+        summary_line = ""
+        if job.get("llm_summary"):
+            summary_line = f"\n📋 {job['llm_summary']}"
+
+        # ── Missing keywords ──────────────────────────────────────────────
+        missing_line = ""
+        if job.get("missing_keywords"):
+            try:
+                missing = json.loads(job["missing_keywords"])
+            except (json.JSONDecodeError, TypeError):
+                missing = []
+            if missing:
+                missing_line = f"\n❌ **Missing:** {', '.join(missing[:8])}"
+
+        # ── Assemble card ─────────────────────────────────────────────────
         output += f"""
 ---
-**{i}. {job['title']}** @ {job['company']} *(ID: {job.get('id', 'N/A')})*
-📍 {job['location']}{"  |  💰 " + salary if salary else ""}
-{score_line}🔗 [View Job]({job['url']})
+### {i}. {job['title']} @ {job['company']}
+📍 {job['location']}{"   " + salary if salary else ""}{"   " + score_line if score_line else ""}
+{summary_line}
+{missing_line}
+
+🔗 [View Job]({job['url']}) *(ID: {job.get('id', 'N/A')})*
+
 """
     return output.strip()
 
