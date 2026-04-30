@@ -1,6 +1,5 @@
 import json
 import gradio as gr
-from job_search import search_jobs
 from db import (
     init_db,
     save_jobs, load_jobs, get_unscored_jobs, update_job_score, clear_job_score,
@@ -8,12 +7,27 @@ from db import (
 )
 from resume import parse_resume
 from scorer import score_job
+from intent import run_agentic_search
 
 init_db()
 
 # ── Session globals ────────────────────────────────────────────────────────────
 parsed_resume: dict = load_resume() or {}
 
+# ── Constants ─────────────────────────────────────────────────────────────────
+US_STATES = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+    "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+    "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+    "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]
+
+MUSE_CATEGORIES = [
+    "Software Engineering",
+    "Data and Analytics",
+    "Computer and IT",
+]
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -91,84 +105,137 @@ def format_jobs(jobs: list[dict]) -> str:
     output = ""
     for i, job in enumerate(jobs, 1):
         salary = ""
-        if job["salary_min"] and job["salary_max"]:
+        if job.get("salary_min") and job.get("salary_max"):
             salary = f"${job['salary_min']:,.0f} – ${job['salary_max']:,.0f}"
-        elif job["salary_min"]:
+        elif job.get("salary_min"):
             salary = f"From ${job['salary_min']:,.0f}"
 
         score_line = ""
         if job.get("score") is not None:
             score_line = f"⭐ Score: {job['score']}/100  |  {job.get('llm_summary', '')}\n"
             if job.get("missing_keywords"):
-                missing = json.loads(job["missing_keywords"])
-                score_line += f"❌ Missing: {', '.join(missing[:8])}\n"
+                try:
+                    missing = json.loads(job["missing_keywords"])
+                except (json.JSONDecodeError, TypeError):
+                    missing = []
+                if missing:
+                    score_line += f"❌ Missing: {', '.join(missing[:8])}\n"
 
         output += f"""
 ---
-**{i}. {job['title']}** @ {job['company']} *(ID: {job['id']})*
+**{i}. {job['title']}** @ {job['company']} *(ID: {job.get('id', 'N/A')})*
 📍 {job['location']}{"  |  💰 " + salary if salary else ""}
 {score_line}🔗 [View Job]({job['url']})
 """
     return output.strip()
 
 
-def run_search(keywords: str, location: str):
+def run_search(
+    experience_level: str,
+    category: str,
+    state: str,
+    job_titles: str,
+    notes: str,
+):
     global parsed_resume
-    if not keywords.strip():
-        return "Please enter at least one keyword.", ""
+
+    # ── Input validation ───────────────────────────────────────────────────────
+    if not experience_level:
+        yield "Please select an experience level.", ""
+        return
+    if not category:
+        yield "Please select a job category.", ""
+        return
+    if not state:
+        yield "Please select a state.", ""
+        return
+    if not job_titles.strip():
+        yield "Please enter at least one job title to filter results.", ""
+        return
+
+    # ── Step 1 — Search ────────────────────────────────────────────────────────
+    yield "🔍 Searching The Muse...", ""
+
     try:
-        jobs = search_jobs(keywords, location)
+        jobs = run_agentic_search(
+            experience_level=experience_level,
+            category=category,
+            state=state,
+            notes=notes,
+            job_titles=job_titles,
+        )
     except Exception as e:
-        return f"Error fetching jobs: {e}", ""
+        yield f"❌ Search failed: {e}", ""
+        return
 
+    if not jobs:
+        yield "No jobs found. Try different titles, category, or state.", ""
+        return
+
+    # ── Step 2 — Save to DB ────────────────────────────────────────────────────
+    yield f"📥 Found {len(jobs)} jobs — saving to database...", ""
     inserted = save_jobs(jobs)
-    status = f"✅ Found {len(jobs)} jobs — {inserted} new, {len(jobs) - inserted} already saved."
 
-    # Score new jobs inline if resume is loaded
-    if parsed_resume:
-        newly_saved = [j for j in jobs if j.get("url")]
-        scored_count = 0
-        for job in newly_saved:
-            # Only score if this job was freshly inserted (no id yet in our list,
-            # so we look it up by url from the full DB to get its id)
-            pass  # handled below via load after save
+    if not parsed_resume:
+        yield (
+            f"✅ Done — {len(jobs)} jobs found, {inserted} new. "
+            f"Upload a resume to score them.",
+            format_jobs(jobs),
+        )
+        return
 
-        # Re-load from DB so we have ids, then score any that are unscored
-        all_unscored = get_unscored_jobs()
-        # Only score jobs that came from this search (match by url)
-        this_search_urls = {j["url"] for j in jobs}
-        to_score = [j for j in all_unscored if j["url"] in this_search_urls]
+    # ── Step 3 — Score ─────────────────────────────────────────────────────────
+    this_search_urls = {j["url"] for j in jobs}
+    to_score = [j for j in get_unscored_jobs() if j["url"] in this_search_urls]
 
-        for job in to_score:
-            try:
-                result = score_job(parsed_resume, job)
-                update_job_score(
-                    job_id=job["id"],
-                    score=result["score"],
-                    keywords=json.dumps(result.get("keywords", [])),
-                    missing_keywords=json.dumps(result.get("missing_keywords", [])),
-                    llm_summary=result.get("llm_summary", ""),
-                )
-                job.update({
-                    "score":            result["score"],
-                    "keywords":         json.dumps(result.get("keywords", [])),
-                    "missing_keywords": json.dumps(result.get("missing_keywords", [])),
-                    "llm_summary":      result.get("llm_summary", ""),
-                })
-                scored_count += 1
-            except Exception as e:
-                continue
+    if not to_score:
+        yield (
+            f"✅ {len(jobs)} jobs found, {inserted} new — all already scored.",
+            format_jobs(jobs),
+        )
+        return
 
-        if parsed_resume:
-            status += f" Scored {scored_count}/{len(to_score)} jobs."
+    yield (
+        f"✅ {inserted} new jobs saved — scoring {len(to_score)} jobs...",
+        "",
+    )
 
-    return format_jobs(jobs if not parsed_resume else to_score or jobs), status
+    scored_jobs = []
+    for i, job in enumerate(to_score, 1):
+        yield (
+            f"⏳ Scoring job {i}/{len(to_score)}: "
+            f"{job['title']} @ {job['company']}...",
+            format_jobs(scored_jobs) if scored_jobs else "",
+        )
+        try:
+            result = score_job(parsed_resume, job)
+            update_job_score(
+                job_id=job["id"],
+                score=result["score"],
+                keywords=json.dumps(result.get("keywords", [])),
+                missing_keywords=json.dumps(result.get("missing_keywords", [])),
+                llm_summary=result.get("llm_summary", ""),
+            )
+            job.update({
+                "score":            result["score"],
+                "keywords":         json.dumps(result.get("keywords", [])),
+                "missing_keywords": json.dumps(result.get("missing_keywords", [])),
+                "llm_summary":      result.get("llm_summary", ""),
+            })
+            scored_jobs.append(job)
+        except Exception as e:
+            print(f"[run_search] Scoring failed for {job['title']}: {e}")
+            continue
+
+    yield (
+        f"✅ Done — scored {len(scored_jobs)}/{len(to_score)} jobs.",
+        format_jobs(scored_jobs),
+    )
 
 
 def show_saved():
     jobs = load_jobs()
-    status = f"📦 {len(jobs)} jobs in database."
-    return format_jobs(jobs), status
+    return format_jobs(jobs), f"📦 {len(jobs)} jobs in database."
 
 
 def clear_score(job_id_str: str):
@@ -177,8 +244,7 @@ def clear_score(job_id_str: str):
     except ValueError:
         return "❌ Enter a valid numeric job ID.", show_saved()[0]
     clear_job_score(job_id)
-    jobs = load_jobs()
-    return f"✅ Score cleared for job ID {job_id}.", format_jobs(jobs)
+    return f"✅ Score cleared for job ID {job_id}.", format_jobs(load_jobs())
 
 
 # ── Resume tab ─────────────────────────────────────────────────────────────────
@@ -190,9 +256,8 @@ def upload_resume(file):
     try:
         parsed_resume = parse_resume(file.name)
         save_resume(parsed_resume, filename=file.name)
-        display = json.dumps(parsed_resume, indent=2)
         status = f"✅ Resume parsed for {parsed_resume.get('name', 'Unknown')} — ready to score."
-        return status, display
+        return status, json.dumps(parsed_resume, indent=2)
     except Exception as e:
         return f"❌ Error: {e}", ""
 
@@ -204,7 +269,7 @@ def score_saved_jobs():
         return
     jobs = get_unscored_jobs()
     if not jobs:
-        yield "✅ All saved jobs already scored. Load Saved Jobs to see results.", ""
+        yield "✅ All saved jobs already scored.", ""
         return
     results = []
     for i, job in enumerate(jobs, 1):
@@ -235,7 +300,8 @@ def score_saved_jobs():
 
 def load_from_resume():
     if not parsed_resume:
-        return ("", "", "", "", None, "", "", "", "❌ No resume loaded. Upload and parse your resume first.")
+        return ("", "", "", "", None, "", "", "", None,
+                "❌ No resume loaded. Upload and parse your resume first.")
     p = _resume_to_profile(parsed_resume)
     return (
         p["name"],
@@ -246,15 +312,18 @@ def load_from_resume():
         p["certifications"],
         p["education"],
         p["experience"],
-        None,
+        p["professional_level"],
         "✅ Fields populated from resume — review and click Save Profile.",
     )
 
 
-def handle_save_profile(name, email, summary, skills, yoe, certifications, education, experience, professional_level):
+def handle_save_profile(
+    name, email, summary, skills, yoe, certifications, education, experience, professional_level
+):
     global parsed_resume
     edits = _profile_fields_to_dict(
-        name, email, summary, skills, yoe, certifications, education, experience, professional_level
+        name, email, summary, skills, yoe, certifications,
+        education, experience, professional_level
     )
     parsed_resume = {**parsed_resume, **edits}
     save_resume(parsed_resume)
@@ -273,18 +342,51 @@ def _pf(key, default=""):
 
 _initial_profile = _resume_to_profile(parsed_resume) if parsed_resume else {}
 
-
-with gr.Blocks(title="Job Dashboard") as app:
-    gr.Markdown("# 🔍 Job Dashboard")
+with gr.Blocks(title="Job Intelligence Dashboard") as app:
+    gr.Markdown("# 🔍 Job Intelligence Dashboard")
 
     with gr.Tab("Search"):
+        gr.Markdown(
+            "Fill in all fields below to search for jobs. "
+            "Job Titles filters results to matching roles only."
+        )
+
         with gr.Row():
-            keywords = gr.Textbox(label="Keywords", placeholder="e.g. python data engineer")
-            location = gr.Textbox(label="Location", placeholder="e.g. new york", value="new york")
+            experience_level = gr.Dropdown(
+                label="Experience Level",
+                choices=["Internship", "Entry-level", "Mid-level", "Senior-level", "Director"],
+                value="Entry-level",
+            )
+            category = gr.Dropdown(
+                label="Job Category",
+                choices=MUSE_CATEGORIES,
+                value="Software Engineering",
+            )
+            state = gr.Dropdown(
+                label="State",
+                choices=US_STATES,
+                value="NY",
+            )
+
+        job_titles = gr.Textbox(
+            label="Job Titles (comma-separated — required, filters results)",
+            placeholder="e.g. Data Engineer, ML Engineer, Software Engineer",
+        )
+        notes = gr.Textbox(
+            label="Notes (optional)",
+            placeholder="e.g. prefer AI-first companies, avoid consulting",
+            lines=2,
+        )
+
         search_btn     = gr.Button("Search", variant="primary")
         search_status  = gr.Textbox(label="Status", interactive=False)
         search_results = gr.Markdown()
-        search_btn.click(fn=run_search, inputs=[keywords, location], outputs=[search_results, search_status])
+
+        search_btn.click(
+            fn=run_search,
+            inputs=[experience_level, category, state, job_titles, notes],
+            outputs=[search_status, search_results],
+        )
 
     with gr.Tab("Saved Jobs"):
         load_btn      = gr.Button("Load Saved Jobs", variant="secondary")
@@ -297,19 +399,30 @@ with gr.Blocks(title="Job Dashboard") as app:
         with gr.Row():
             clear_id_input = gr.Textbox(label="Job ID", scale=1, placeholder="e.g. 42")
             clear_btn      = gr.Button("Clear Score", variant="stop", scale=1)
-        clear_btn.click(fn=clear_score, inputs=[clear_id_input], outputs=[saved_status, saved_results])
+        clear_btn.click(
+            fn=clear_score,
+            inputs=[clear_id_input],
+            outputs=[saved_status, saved_results],
+        )
 
     with gr.Tab("Resume"):
         gr.Markdown("Upload your resume, then score it against all saved jobs.")
         resume_status = gr.Textbox(
             label="Status",
             interactive=False,
-            value=f"✅ Resume loaded from previous session ({parsed_resume.get('name', '')})." if parsed_resume else "",
+            value=(
+                f"✅ Resume loaded from previous session ({parsed_resume.get('name', '')})."
+                if parsed_resume else ""
+            ),
         )
         pdf_upload    = gr.File(label="Upload Resume (PDF)", file_types=[".pdf"])
         parse_btn     = gr.Button("Parse Resume", variant="primary")
         resume_output = gr.Code(label="Parsed Resume (JSON)", language="json")
-        parse_btn.click(fn=upload_resume, inputs=[pdf_upload], outputs=[resume_status, resume_output])
+        parse_btn.click(
+            fn=upload_resume,
+            inputs=[pdf_upload],
+            outputs=[resume_status, resume_output],
+        )
 
         gr.Markdown("---")
         score_btn     = gr.Button("Score Saved Jobs", variant="primary")
@@ -323,7 +436,6 @@ with gr.Blocks(title="Job Dashboard") as app:
             "Click **Load from Resume** to re-seed from the latest parsed PDF, "
             "or edit directly and click **Save Profile**."
         )
-
         profile_status = gr.Textbox(label="Status", interactive=False)
 
         with gr.Row():
@@ -394,7 +506,6 @@ with gr.Blocks(title="Job Dashboard") as app:
             fn=load_from_resume,
             outputs=[*_all_fields, profile_status],
         )
-
         save_profile_btn.click(
             fn=handle_save_profile,
             inputs=_all_fields,
